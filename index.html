@@ -1,0 +1,1216 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Flyer to Fork</title>
+</head>
+<body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F2F3EF; --card:#FFFFFF; --sunk:#E9EBE4;
+  --ink:#191C16; --ink2:#5C6157; --ink3:#878D80;
+  --rule:#D8DBD2; --rule2:#C3C8BA;
+  --sale:#BE3A22; --sale-bg:#FBEAE5;
+  --good:#2F6B3F; --good-bg:#E4EFE5;
+  --warn:#8E6309; --warn-bg:#F7EDD8;
+  --photo:#454E9E; --photo-bg:#E7E9F6;
+  --shadow:0 1px 2px rgba(25,28,22,.06),0 4px 14px rgba(25,28,22,.05);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#131510; --card:#1C1F19; --sunk:#232720;
+  --ink:#ECEFE6; --ink2:#9BA194; --ink3:#767C6F;
+  --rule:#2F3329; --rule2:#3D4236;
+  --sale:#F2795F; --sale-bg:#331C16;
+  --good:#7CBD8C; --good-bg:#18271A;
+  --warn:#DCA83F; --warn-bg:#2B2313;
+  --photo:#9FA7EC; --photo-bg:#1C1E33;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.3);
+}}
+:root[data-theme="dark"]{
+  --paper:#131510; --card:#1C1F19; --sunk:#232720;
+  --ink:#ECEFE6; --ink2:#9BA194; --ink3:#767C6F;
+  --rule:#2F3329; --rule2:#3D4236;
+  --sale:#F2795F; --sale-bg:#331C16;
+  --good:#7CBD8C; --good-bg:#18271A;
+  --warn:#DCA83F; --warn-bg:#2B2313;
+  --photo:#9FA7EC; --photo-bg:#1C1E33;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}
+html,body{background:var(--paper)}
+body{margin:0;color:var(--ink);font-family:"Public Sans",system-ui,-apple-system,sans-serif;
+  font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px;padding-block:0 56px}
+h1,h2,h3{text-wrap:balance;margin:0}
+.mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+.disp{font-family:Anton,"Arial Narrow",Impact,sans-serif;font-weight:400;letter-spacing:.01em;text-transform:uppercase}
+.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);font-weight:600}
+
+/* ---- masthead ---- */
+.mast{border-bottom:2px solid var(--ink);background:var(--paper);
+  position:sticky;top:env(safe-area-inset-top,0px);z-index:20}
+.mast-in{max-width:1180px;margin:0 auto;padding:0 16px;padding-block:14px 12px;
+  display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.mast h1{font-size:clamp(26px,5.2vw,40px);line-height:.92;font-family:Anton,"Arial Narrow",Impact,sans-serif;
+  font-weight:400;text-transform:uppercase;letter-spacing:.005em}
+.mast h1 em{font-style:normal;color:var(--sale)}
+.mast .sub{font-size:12.5px;color:var(--ink2);margin-left:auto;text-align:right;line-height:1.35}
+
+/* ---- controls ---- */
+.controls{background:var(--card);border:1px solid var(--rule);border-radius:3px;box-shadow:var(--shadow);
+  margin-top:18px;padding:16px;display:grid;gap:14px;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);font-weight:600}
+.field input,.field select{font:inherit;font-size:14px;color:var(--ink);background:var(--paper);
+  border:1px solid var(--rule2);border-radius:2px;padding:8px 9px;width:100%;min-width:0}
+.field input:focus-visible,.field select:focus-visible,button:focus-visible{outline:2px solid var(--sale);outline-offset:1px}
+.field .hint{font-size:11.5px;color:var(--ink3)}
+.btn{font:inherit;font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;
+  background:var(--ink);color:var(--paper);border:1px solid var(--ink);border-radius:2px;
+  padding:9px 16px;cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--sale);border-color:var(--sale);color:#fff}
+.btn[disabled]{opacity:.5;cursor:default}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--rule2);font-weight:600}
+.btn.ghost:hover{background:var(--sunk);color:var(--ink);border-color:var(--ink)}
+
+/* ---- status strip ---- */
+.strip{margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+  font-size:12.5px;color:var(--ink2);padding:9px 12px;background:var(--sunk);border-radius:2px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--good);flex:none}
+.dot.warn{background:var(--warn)} .dot.err{background:var(--sale)}
+
+/* ---- layout ---- */
+.cols{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:26px;align-items:start;margin-top:26px}
+@media(max-width:900px){.cols{grid-template-columns:1fr;gap:22px}}
+section{margin-bottom:34px}
+.sec-head{display:flex;align-items:baseline;gap:12px;border-bottom:1.5px solid var(--ink);
+  padding-bottom:7px;margin-bottom:16px;flex-wrap:wrap}
+.sec-head h2{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.sec-head .note{font-size:12px;color:var(--ink3);margin-left:auto}
+
+/* ---- day cards ---- */
+.days{display:grid;gap:12px}
+.day{background:var(--card);border:1px solid var(--rule);border-radius:3px;overflow:hidden}
+.day-top{display:grid;grid-template-columns:62px minmax(0,1fr) auto;gap:14px;align-items:center;
+  padding:13px 15px;cursor:pointer;width:100%;background:none;border:0;font:inherit;color:inherit;text-align:left}
+.day-top:hover{background:var(--sunk)}
+.daytag{font-family:Anton,"Arial Narrow",Impact,sans-serif;font-size:13px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink3);border-right:1px solid var(--rule);padding-right:12px;line-height:1.15}
+.daytag b{display:block;color:var(--ink);font-size:19px;letter-spacing:.02em}
+.day h3{font-size:16px;font-weight:700;letter-spacing:-.01em;line-height:1.25}
+.day .meta{font-size:12px;color:var(--ink2);margin-top:3px}
+.hitbadge{text-align:right;flex:none}
+.hitbadge .n{font-family:Anton,"Arial Narrow",Impact,sans-serif;font-size:21px;color:var(--sale);line-height:1}
+.hitbadge .l{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);font-weight:600}
+.day-body{padding:0 15px 15px;border-top:1px dashed var(--rule)}
+.day-body h4{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);
+  font-weight:600;margin:14px 0 7px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12px;padding:3px 8px;border-radius:2px;background:var(--sunk);color:var(--ink2);
+  border:1px solid var(--rule);display:inline-flex;gap:6px;align-items:center}
+.chip.on{background:var(--sale-bg);border-color:var(--sale);color:var(--sale);font-weight:600}
+.chip .pr{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-weight:600}
+.steps{margin:0;padding-left:19px;font-size:13.5px;color:var(--ink2);line-height:1.6}
+.steps li{margin-bottom:4px}
+.steps li::marker{color:var(--sale);font-weight:700}
+</style>
+<style>
+/* ---- shopping list ---- */
+.aisle{margin-bottom:20px}
+.aisle-h{display:flex;align-items:center;gap:9px;margin-bottom:7px}
+.aisle-h .nm{font-size:11px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;color:var(--ink)}
+.aisle-h .ln{flex:1;height:1px;background:var(--rule2)}
+.aisle-h .ct{font-size:11px;color:var(--ink3)}
+.row{display:grid;grid-template-columns:22px minmax(0,1fr) 58px 92px;gap:10px;align-items:center;
+  padding:8px 6px;border-bottom:1px solid var(--rule)}
+.row:hover{background:var(--card)}
+@media(max-width:520px){.row{grid-template-columns:22px minmax(0,1fr) 54px 80px;gap:7px;font-size:13.5px}}
+.row input[type=checkbox]{width:16px;height:16px;accent-color:var(--good);cursor:pointer}
+.row.done .nm,.row.done .src{text-decoration:line-through;opacity:.45}
+.row .nm{min-width:0}
+.row .nm b{font-weight:600;display:block;line-height:1.3}
+.row .src{font-size:11.5px;color:var(--ink3);line-height:1.35;margin-top:1px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .qty{font:inherit;font-size:13px;text-align:center;padding:4px;border:1px solid var(--rule2);
+  border-radius:2px;background:var(--paper);color:var(--ink);font-variant-numeric:tabular-nums;width:100%}
+.price{text-align:right;font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;
+  font-size:13.5px;font-weight:600}
+.price.flyer{color:var(--sale)}
+.price input{font:inherit;font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;
+  width:100%;text-align:right;padding:4px 5px;border:1px dashed var(--rule2);border-radius:2px;
+  background:transparent;color:var(--warn)}
+.price input::placeholder{color:var(--ink3);font-style:italic}
+.price input.photo{color:var(--photo);border-style:solid;border-color:var(--photo-bg)}
+
+/* ---- budget rail ---- */
+.rail{position:sticky;top:calc(env(safe-area-inset-top,0px) + 86px);display:grid;gap:14px}
+@media(max-width:900px){.rail{position:static}}
+.panel{background:var(--card);border:1px solid var(--rule);border-radius:3px;padding:15px;box-shadow:var(--shadow)}
+.panel.hero{border:2px solid var(--ink);box-shadow:none}
+.bigfig{font-family:Anton,"Arial Narrow",Impact,sans-serif;font-size:42px;line-height:.95;
+  font-variant-numeric:tabular-nums;letter-spacing:.005em}
+.bigfig.over{color:var(--sale)} .bigfig.under{color:var(--good)}
+.meter{height:7px;background:var(--sunk);border-radius:99px;overflow:hidden;margin:11px 0 8px;display:flex}
+.meter i{display:block;height:100%}
+.meter i.f{background:var(--sale)} .meter i.e{background:var(--warn);opacity:.65}
+.ledger{display:grid;gap:5px;font-size:12.5px;margin-top:10px}
+.ledger div{display:flex;justify-content:space-between;gap:10px}
+.ledger span:last-child{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-weight:600}
+.ledger .tot{border-top:1px solid var(--rule2);margin-top:4px;padding-top:6px;font-weight:700}
+.caveat{font-size:11.5px;color:var(--ink3);line-height:1.5;margin-top:11px;
+  padding-top:10px;border-top:1px dashed var(--rule)}
+.swaps{display:grid;gap:8px;font-size:12.5px}
+.swap{display:flex;gap:8px;align-items:baseline;color:var(--ink2)}
+.swap b{color:var(--sale);font-family:"IBM Plex Mono",monospace;font-weight:600;flex:none}
+
+/* ---- manual mode ---- */
+.pages{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px}
+.pg{position:relative;border:1px solid var(--rule);border-radius:3px;overflow:hidden;
+  background:var(--card);cursor:pointer;padding:0;display:block;width:100%;line-height:0}
+.pg img{display:block;width:100%;height:auto}
+.pg .n{position:absolute;left:0;top:0;background:var(--ink);color:var(--paper);
+  font-size:10px;letter-spacing:.07em;padding:2px 6px;font-weight:700;line-height:1.4}
+.pg.on{border-color:var(--photo);box-shadow:inset 0 0 0 2px var(--photo)}
+.pg .tick{position:absolute;right:5px;top:5px;width:18px;height:18px;border-radius:50%;
+  background:var(--photo);color:#fff;font-size:11px;line-height:18px;text-align:center;display:none}
+.pg.on .tick{display:block}
+.pg:focus-visible{outline:2px solid var(--sale);outline-offset:1px}
+.manual textarea{width:100%;min-height:150px;font-family:"IBM Plex Mono",monospace;font-size:13px;
+  padding:11px;border:1px solid var(--rule2);border-radius:2px;background:var(--paper);
+  color:var(--ink);resize:vertical;line-height:1.6}
+.manual textarea:focus-visible{outline:2px solid var(--sale);outline-offset:1px}
+.banner{background:var(--warn-bg);border:1px solid var(--warn);border-left-width:3px;border-radius:2px;
+  padding:11px 13px;font-size:13px;color:var(--ink);margin-bottom:14px;line-height:1.5}
+.banner b{color:var(--warn)}
+.foot{margin-top:40px;padding-top:16px;border-top:1px solid var(--rule);
+  font-size:11.5px;color:var(--ink3);line-height:1.6}
+.spin{display:inline-block;width:11px;height:11px;border:2px solid var(--rule2);
+  border-top-color:var(--sale);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-1px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+<header class="mast">
+  <div class="mast-in">
+    <h1>Flyer <em>to</em> Fork</h1>
+    <div class="sub" id="mastSub">Upload wherever prices live.<br>Get the week they can actually buy.</div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="controls">
+    <div class="field">
+      <label for="cuisine">Cooking</label>
+      <select id="cuisine">
+        <option value="auto">Match the prices</option>
+        <option value="any">Anything</option>
+        <option value="india">Indian</option>
+        <option value="europe">European</option>
+        <option value="latin">Latin American</option>
+      </select>
+      <span class="hint" id="cuisineHint">Read from your capture</span>
+    </div>
+    <div class="field" id="curField" hidden>
+      <label for="curSel">Currency</label>
+      <select id="curSel">
+        <option value="$">$ dollar</option>
+        <option value="\u20B9">\u20B9 rupee</option>
+        <option value="\u20AC">\u20AC euro</option>
+        <option value="\u00A3">\u00A3 pound</option>
+        <option value="C$">C$ Canadian</option>
+        <option value="A$">A$ Australian</option>
+        <option value="R">R rand</option>
+        <option value="\u20A6">\u20A6 naira</option>
+        <option value="\u00A5">\u00A5 yen</option>
+        <option value="RM">RM ringgit</option>
+      </select>
+      <span class="hint">Nothing in the image said</span>
+    </div>
+    <div class="field">
+      <label for="budget">Weekly budget</label>
+      <input id="budget" type="number" min="0" step="5" value="75" inputmode="decimal">
+      <span class="hint" id="curHint">US dollars</span>
+    </div>
+    <div class="field">
+      <label for="people">Eaters</label>
+      <input id="people" type="number" min="1" max="12" step="1" value="2" inputmode="numeric">
+      <span class="hint">Scales every quantity</span>
+    </div>
+    <div class="field">
+      <label for="diet">Diet</label>
+      <select id="diet">
+        <option value="any">No restriction</option>
+        <option value="eggveg">No meat, eggs fine</option>
+        <option value="veg">Vegetarian (no egg)</option>
+        <option value="vegan">Vegan</option>
+        <option value="nopork">No pork</option>
+        <option value="nobeef">No beef</option>
+      </select>
+      <span class="hint">Veg means no egg</span>
+    </div>
+    <div class="field">
+      <label for="equip">Kit</label>
+      <select id="equip">
+        <option value="all">Cooker + oven</option>
+        <option value="cooker">Pressure cooker, no oven</option>
+        <option value="oven">Oven, no cooker</option>
+        <option value="pan">Just a hob and a pan</option>
+      </select>
+      <span class="hint">Gates half the list</span>
+    </div>
+    <div class="field">
+      <label for="nights">Nights to plan</label>
+      <input id="nights" type="number" min="3" max="7" step="1" value="7" inputmode="numeric">
+      <span class="hint">Leftovers fill the rest</span>
+    </div>
+    <div class="field" style="justify-content:flex-end">
+      <label>&nbsp;</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="photoBtn" hidden>Read prices from a photo or PDF</button>
+        <button class="btn ghost" id="manualBtn">Type prices</button>
+        <button class="btn ghost" id="resetBtn" hidden>Start over</button>
+        <input type="file" id="photoInput" accept="image/*" multiple hidden>
+      </div>
+    </div>
+  </div>
+
+  <div class="strip" id="strip"><span class="dot"></span><span id="stripTxt">Starting up…</span></div>
+
+  <div id="manualWrap" hidden>
+    <section class="manual" style="margin-top:22px">
+      <div class="sec-head"><h2>Enter this week's prices</h2>
+        <span class="note">One item per line</span></div>
+      <div class="banner" id="manualWhy"></div>
+      <textarea id="manualTxt" spellcheck="false" placeholder="toor dal 1kg, 145
+basmati rice 5kg, 410
+onion 1kg, 32
+potato 1kg, 28
+tomato 1kg, 40
+paneer 200g, 95
+eggs 12, 84"></textarea>
+      <div style="display:flex;gap:9px;margin-top:11px;flex-wrap:wrap">
+        <button class="btn" id="useManual">Use these prices</button>
+        <button class="btn ghost" id="backLive">Cancel</button>
+      </div>
+    </section>
+  </div>
+
+  <div id="pdfWrap" hidden>
+    <section style="margin-top:22px">
+      <div class="sec-head"><h2>Which pages have the food?</h2>
+        <span class="note" id="pdfNote"></span></div>
+      <div class="banner" id="pdfWhy"></div>
+      <div class="pages" id="pdfPages"></div>
+      <div style="display:flex;gap:9px;margin-top:12px;flex-wrap:wrap">
+        <button class="btn" id="pdfGo">Read selected pages</button>
+        <button class="btn ghost" id="pdfCancel">Cancel</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="cols" id="cols" hidden>
+    <main>
+      <section id="planSec">
+        <div class="sec-head"><h2>The week</h2><span class="note" id="planNote"></span></div>
+        <div class="days" id="days"></div>
+      </section>
+      <section id="listSec">
+        <div class="sec-head"><h2>This week’s shop</h2><span class="note" id="listNote"></span></div>
+        <div id="list"></div>
+      </section>
+      <section id="pantrySec" hidden>
+        <div class="sec-head"><h2>Starter pantry</h2><span class="note" id="pantryNote">Bought once · lasts weeks</span></div>
+        <div id="pantryList"></div>
+      </section>
+    </main>
+    <aside class="rail">
+      <div class="panel hero">
+        <div class="eyebrow">This week’s shop</div>
+        <div class="bigfig" id="total">0.00</div>
+        <div class="meter"><i class="f" id="mf" style="width:0"></i><i class="e" id="me" style="width:0"></i></div>
+        <div class="ledger" id="ledger"></div>
+        <div class="caveat" id="caveat"></div>
+      </div>
+      <div class="panel" id="swapPanel" hidden>
+        <div class="eyebrow" style="margin-bottom:9px">Deepest cuts this week</div>
+        <div class="swaps" id="swaps"></div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="foot" id="foot"></div>
+</div>
+<script>
+"use strict";
+const SAMPLE_US=[{"n":"INDIANA KITCHEN PORK TENDERLOIN","p":2.99},{"n":"CHUCK STEAK","p":6.99},{"n":"CENTER CUT PORK CHOPS","p":2.39},{"n":"PROGRESSO TRADITIONAL SOUPS","p":5.0},{"n":"CARNATION EVAPORATED MILK","p":3.0},{"n":"PEPSI","p":5.0},{"n":"ENTENMANN'S DONUTS","p":3.99},{"n":"PERDUE QUARTERED CHICKEN LEGS","p":1.29},{"n":"KRASDALE ASSORTED CHEESE","p":4.0},{"n":"Cafe Valley BUNDT CAKE","p":4.99},{"n":"AJAX DISH LIQUID","p":4.99},{"n":"SPAM LUNCHEON MEAT","p":4.49},{"n":"McILHENNY TABASCO SAUCE","p":1.79},{"n":"CASCADIAN FARM ORGANIC GRANOLA","p":5.49},{"n":"YASSO GREEK YOGURT BARS","p":5.99},{"n":"GROUND BEEF","p":6.99},{"n":"GIORGIO WHITE MUSHROOMS","p":4.0},{"n":"SCOTT & JON'S SHRIMP","p":9.0},{"n":"UTZ VARIETY SNACK PACKS","p":10.0},{"n":"MAZOLA CORN OIL","p":9.99},{"n":"MOTT'S JUICE","p":7.0},{"n":"KRASDALE 2 PLY TOWELS","p":5.99},{"n":"SUNNY D DRINKS","p":2.99},{"n":"McCORMICK TACO SEASONING MIX","p":1.19},{"n":"CREAM OF WHEAT INSTANT CEREAL","p":5.49},{"n":"BERTOLLI EXTRA VIRGIN OLIVE OIL","p":22.99},{"n":"YOO-HOO CHOCOLATE FLAVORED DRINKS","p":4.99},{"n":"THIN SLICED CENTER CUT PORK CHOPS","p":2.99},{"n":"Grade \"A\", Brown \u2022LAND O LAKES ALL NATURAL LARGE EGGS DOZEN Quarters: Salted or Unsalted \u2022KRASDALE BUTTER 1 LB. PKGS.","p":6.0},{"n":"KELLOGG'S FROSTED FLAKES","p":2.99},{"n":"MASECA CORN FLOUR","p":3.99},{"n":"\u2022 GALA \u2022 MCINTOSH \u2022 GINGER GOLD APPLES","p":0.99},{"n":"FRESH ATTITUDE SALADS","p":5.0},{"n":"RED SEEDLESS GRAPES","p":2.99},{"n":"HAWAIIAN PUNCH","p":7.0},{"n":"ALMOND BREEZE ALMONDMILK","p":6.0},{"n":"TOMATOES ON-THE-VINE","p":1.99},{"n":"NATHAN'S FRENCH FRIES","p":9.0},{"n":"NABISCO CHIPS AHOY! COOKIES","p":3.99},{"n":"NABISCO PREMIUM CRACKERS","p":7.0},{"n":"CHOBANI GREEK YOGURT","p":5.0},{"n":"BIRDS EYE STEAMFRESH VEGETABLES","p":3.0},{"n":"KRAFT MAC & CHEESE","p":3.0},{"n":"KRASDALE ICE CREAM","p":6.0},{"n":"KRASDALE WAFFLES, 10 PK. 12.3 OZ. BOXES","p":4.0},{"n":"MAXWELL HOUSE COFFEE 9.9-11.5 OZ. CAN, INTERNATIONAL CAFE 7.6-9 OZ. CAN","p":4.99},{"n":"TIDE LIQUID, DETERGENT, PODS","p":12.99},{"n":"HEINZ KETCHUP","p":3.99},{"n":"KRASDALE 1000 TISSUE","p":11.99},{"n":"BUDWEISER BEER","p":20.99},{"n":"EIGHT O'CLOCK COFFEE K-CUPS","p":19.99},{"n":"POST HONEY BUNCHES OF OATS","p":5.99},{"n":"SOFTSOAP HAND SOAP","p":1.99},{"n":"GOYA JASMINE RICE","p":8.99},{"n":"GREEN MOUNTAIN COFFEE K-CUPS OR KEURIG COFFEE COLLECTIVE K-CUPS","p":8.99},{"n":"GOLDEN BLOSSOM HONEY","p":6.99},{"n":"CORONITA EXTRA BEER","p":26.99},{"n":"POST PEBBLES CEREAL","p":3.0},{"n":"DOLE FRUIT BOWLS","p":11.99},{"n":"PASTA RONI or RICE-A- RONI","p":2.29},{"n":"KRASDALE MAYONNAISE","p":2.49},{"n":"GOYA BEANS","p":5.0},{"n":"BUSCH BEER","p":9.99},{"n":"KEN'S DRESSING","p":2.49},{"n":"KELLOGG'S NUTRIGRAIN BARS 10.4 Oz. Box Original, RICE KRISPIES TREATS 6.98 Oz. Boxes","p":3.99},{"n":"MIRA COCONUT MILK","p":1.29},{"n":"KNORR GRANULATED BOUILLON","p":5.49},{"n":"ATHLETIC NON-ALCOHOLIC BEER","p":10.99},{"n":"KRASDALE TRASH BAGS, 20 Ct. Box","p":4.49},{"n":"CLASSICO PASTA SAUCE","p":5.0},{"n":"V8 SPLASH DRINKS","p":2.99},{"n":"PEET'S GROUND COFFEE","p":17.99},{"n":"LYSOL ALL PURPOSE CLEANER","p":5.49},{"n":"XTRA LIQUID DETERGENT","p":6.99},{"n":"McCORMICK BLACK PEPPERCORN GRINDER","p":2.99},{"n":"CHEEZ-IT CRACKERS","p":4.99},{"n":"MIRA AZUL COCONUT JUICE","p":3.0},{"n":"NESCAF\u00c9 CLASICO INSTANT COFFEE","p":17.99},{"n":"MARTINELLI'S SPARKLING CIDER","p":3.99},{"n":"SAN GIORGIO PASTA","p":4.0},{"n":"KRASDALE DRY ROASTED PEANUTS","p":3.69},{"n":"KRASDALE GROUND BLACK PEPPER","p":4.49},{"n":"LYSOL DISINFECTANT SPRAY","p":8.99},{"n":"SUAVITEL FABRIC SOFTENER","p":2.99},{"n":"Sweet P's MINI CUPCAKES","p":9.0},{"n":"APPLE & EVE APPLE JUICE","p":4.99},{"n":"KRASDALE ALUMINUM FOIL","p":6.49},{"n":"KRASDALE SPICES","p":1.69},{"n":"NESQUIK SYRUP","p":4.49},{"n":"RAID ANT & ROACH KILLER","p":5.49},{"n":"APPLE & EVE SESAME STREET JUICE","p":2.99},{"n":"DUNKIN' COFFEE K-CUPS","p":8.49},{"n":"CAROLINA RICE","p":9.99},{"n":"PALMOLIVE DISH LIQUID OR ULTRA DISH LIQUID","p":4.0},{"n":"CESAR DOG FOOD","p":14.99},{"n":"DOVE BAR SOAP","p":2.69},{"n":"CINNAMON SWIRL BREAD","p":4.99},{"n":"SSIPS DRINKS","p":5.0},{"n":"PHILADELPHIA CREAM CHEESE","p":3.99},{"n":"YUMMY DINO BUDDIES CHICKEN BREAST NUGGETS","p":5.99},{"n":"SARA LEE CLASSIC BUTTER BREAD","p":3.99},{"n":"ORONTES WHOLE MILK A2A2 YOGURT","p":3.99},{"n":"DOLE 100% JUICE","p":4.49},{"n":"MONSTER ENERGY DRINK","p":5.0},{"n":"CELENTANO RAVIOLI","p":2.99},{"n":"BOSTON MARKET ENTREES","p":7.0},{"n":"MORNING STAR FARMS VEGETARIAN MEALS","p":4.99},{"n":"POLLY-O SHREDDED PIZZA CHEESE","p":7.0},{"n":"SMART ONES ENTREES","p":5.0},{"n":"TOSTITOS CANTINA TORTILLA CHIPS","p":3.49},{"n":"ON-COR ENTREES","p":5.49},{"n":"SWEET LOREN'S GLUTEN FREE COOKIE DOUGH","p":6.99},{"n":"ELLIO'S 9 SLICE PIZZA","p":3.99},{"n":"SMARTWATER","p":4.0},{"n":"PERDUE CHICKEN","p":7.99},{"n":"KRASDALE DAIRY WHIPPED TOPPING","p":5.0},{"n":"STONYFIELD SMOOTHIES","p":4.0},{"n":"DAISY SOUR CREAM","p":6.0},{"n":"BLUE BONNET SPREAD","p":4.99},{"n":"FOOD CLUB WHIPPED TOPPING","p":3.0},{"n":"SANDWICH BROS. BREAKFAST SANDWICHES","p":8.99},{"n":"NATURE'S OWN 100% WHOLE WHEAT BREAD","p":3.99},{"n":"PURE LEAF ICED TEA","p":1.99},{"n":"COCA-COLA","p":7.49},{"n":"TOTINO'S PIZZA ROLLS","p":4.0},{"n":"GALBANI STRING CHEESE","p":4.99},{"n":"FRIENDSHIP SOUR CREAM","p":6.0},{"n":"KRASDALE VEGETABLES","p":6.0},{"n":"JIMMY DEAN BREAKFAST SANDWICHES","p":7.99},{"n":"TROPICANA PURE PREMIUM ORANGE JUICE","p":8.99},{"n":"KRASDALE PREMIUM ORANGE JUICE","p":7.0},{"n":"WYMAN'S WILD BLUEBERRIES","p":3.99},{"n":"SNAPPLE DRINKS & TEAS","p":5.0},{"n":"KRASDALE GIANT WHITE BREAD","p":1.99},{"n":"KITU SUPER CREAMER, 32 Oz. Cntr.","p":5.99},{"n":"KEVITA PROBIOTIC REFRESHERS","p":6.0},{"n":"YASSO FROZEN GREEK YOGURT","p":5.99},{"n":"TALENTI GELATO","p":4.99},{"n":"WYMAN'S STRAWBERRIES","p":2.99},{"n":"PILLSBURY CRESCENT ROLLS","p":6.0},{"n":"DAISY COTTAGE CHEESE","p":7.0},{"n":"PROPEL FITNESS WATER","p":5.99},{"n":"THOMAS' MUFFIN TOPS","p":3.99},{"n":"FROLLIES POP UPS","p":3.99},{"n":"FOOD CLUB COTTAGE CHEESE","p":3.99},{"n":"MAGNUM ICE CREAM BARS","p":4.99},{"n":"ISLAND WAY SORBET","p":5.99},{"n":"YOPLAIT GOGURT YOGURT","p":2.99},{"n":"LILY'S TOASTER GRILLS","p":7.0},{"n":"KODIAK WAFFLES","p":5.99},{"n":"BREAKSTONE'S WHIPPED BUTTER","p":6.0},{"n":"KRASDALE CREAM CHEESE","p":3.0},{"n":"CANADA DRY GINGER ALE","p":4.99},{"n":"ARNOLD COUNTRY, OROWEAT BREAD","p":3.99},{"n":"SKINNY COW ICE CREAM SANDWICHES","p":3.99},{"n":"KRASDALE DELUXE AMERICAN SLICES","p":3.99},{"n":"BORDEN AMERICAN CHEESE SINGLES","p":7.0},{"n":"Original or Strawberry \u2022RICE KRISPIES TREATS 11.1 Oz. Box Buttery Maple, Chocolate Chip or Blueberry \u2022EGGO ICE CREAM SANDWICHES 17 Oz. Boxes","p":4.99},{"n":"TRULY BUTTER","p":8.99},{"n":"BUTTERBALL TURKEY BURGERS","p":9.99},{"n":"JONES GOLDEN BROWN SAUSAGE","p":2.99},{"n":"THIN SLICED CHUCK STEAK","p":7.49},{"n":"U.S.D.A. Choice Beef FLAP MEAT FOR CHURRASCO","p":15.99},{"n":"WHOLE LARGE FOWL","p":1.79},{"n":"BOAR'S HEAD SALSALITO TURKEY BREAST","p":12.99},{"n":"BOAR'S HEAD SWEET B'S BBQ CHICKEN BREAST","p":11.99},{"n":"BOAR'S HEAD AMERICAN CHEESE","p":5.99},{"n":"New York State LIL SNAPDRAGON APPLES","p":3.99},{"n":"ZESPRI GREEN KIWI FRUIT","p":4.99},{"n":"NAVAL ORANGES OR RUBY RED GRAPEFRUIT","p":5.0},{"n":"ACORN \u2022 BUTTERNUT \u2022 SPAGHETTI SQUASH","p":0.99},{"n":"BELGIOIOSO PARMESAN CUPS","p":6.99},{"n":"PANERA SOUP","p":4.99},{"n":"SAHLEN'S HAM","p":6.99},{"n":"ALPINE LACE SWISS CHEESE","p":7.99},{"n":"PEELED BABY CARROTS","p":1.99},{"n":"COUNTRY STYLE PORK RIBS","p":2.19},{"n":"ASSORTED RIB & LOIN END PORK CHOP COMBINATION","p":1.99},{"n":"MINI SEEDLESS CUCUMBERS","p":2.99},{"n":"DOLE SALADS","p":5.0},{"n":"RADISHES, WATERCRESS","p":4.0},{"n":"BUITONI ALFREDO SAUCE","p":6.99},{"n":"DANIELE SLICED NEW ENGLAND GENOA SALAME","p":3.99},{"n":"SABRA GRAB'N GO HUMMUS 4.56 Oz. Cntr.","p":7.0},{"n":"BUITONI TORTELLINI","p":8.49},{"n":"MUTTON MEAT CUT-UP","p":7.99},{"n":"NECKS","p":2.99},{"n":"DRUMSTICKS","p":3.49},{"n":"ECKRICH SMOKED SAUSAGE","p":3.49},{"n":"PORK NECK BONES","p":1.99},{"n":"MAMA MANCINI'S ITALIAN STYLE MEATBALLS","p":6.99},{"n":"PIG FEET","p":1.99},{"n":"BEEF FOR STEW","p":7.99},{"n":"NATURE'S PRIDE GROUND TURKEY","p":6.99},{"n":"MEATY CHUCK NECK BONES","p":6.99},{"n":"SEMI-BONELESS CHUCK STEAK","p":7.99},{"n":"CURLY'S BBQ PULLED PORK","p":6.99},{"n":"THIN SLICED SHOULDER STEAK","p":9.99},{"n":"GREAT AMERICAN BEEF BURGERS","p":12.99},{"n":"KRASDALE TURKEY BACON","p":3.99},{"n":"HILLSHIRE FARM SMOKED SAUSAGE","p":5.99},{"n":"SMITHFIELD SLICED BACON","p":6.99},{"n":"BEEF BURGERS","p":22.99},{"n":"MINARD FARMS FRESH APPLE CIDER","p":4.99},{"n":"JACK BE LITTLE MINI PUMPKINS","p":3.0},{"n":"RED PEPPERS","p":2.99},{"n":"KIELBASA","p":7.99},{"n":"OSCAR MAYER TURKEY BOLOGNA","p":3.99},{"n":"LUNCHABLES LUNCH COMBINATIONS","p":5.0},{"n":"KRASDALE HOT DOGS","p":4.0},{"n":"KOBE BEEF SMASH BURGERS","p":11.99},{"n":"SWEET OR SPICY ITALIAN CHORIZO SAUSAGE","p":7.99},{"n":"WHOLE CHICKEN","p":3.99},{"n":"ALFRESCO COUNTRY STYLE CHICKEN BREAKFAST SAUSAGE PATTIES","p":3.99},{"n":"PREMIO ITALIAN STYLE MEATBALLS","p":5.99},{"n":"PULLED PORK","p":8.99},{"n":"NIMAN RANCH SMOKED BACON","p":9.99},{"n":"CHICKEN BREAKFAST SAUSAGE LINKS","p":3.99},{"n":"HASS AVOCADOS","p":4.0},{"n":"HOUSE FOODS TOFU SHIRATAKI","p":5.0},{"n":"U.S.D.A. Certified Organic OLIVIA'S ORGANICS","p":3.99},{"n":"GREENHOUSE CRUNCH LETTUCE","p":3.49},{"n":"GRASS FED SMASH BURGERS","p":11.99},{"n":"APPLEGATE NATURAL PORK/BEEF PEPPERONI 4 Oz. Pkg.","p":4.99},{"n":"BELL & EVANS WHOLE CHICKEN","p":3.99},{"n":"BALL PARK BEEF FRANKS","p":6.99},{"n":"JONES CANADIAN STYLE BACON","p":3.99},{"n":"CREAM OF WHEAT QUICK CEREAL","p":3.69},{"n":"POMPEIAN EXTRA VIRGIN OLIVE OIL","p":18.99},{"n":"BETTY CROCKER SUPER MOIST CAKE MIX","p":1.99},{"n":"PURE LIFE PURIFIED WATER","p":3.49},{"n":"GOYA COCONUT WATER","p":2.99},{"n":"CHICKEN OF THE SEA SOLID WHITE TUNA","p":5.0},{"n":"PRINGLES POTATO CRISPS","p":7.99},{"n":"FILIPPO BERIO OLIVE OIL","p":9.99},{"n":"MALT-O-MEAL CEREAL","p":3.99},{"n":"GOYA SAZON ECONO PAK","p":6.0},{"n":"KRASDALE GARLIC POWDER","p":1.69},{"n":"BARILLA COLLEZIONE TORTELLINI","p":5.99},{"n":"POMI IMPORTED STRAINED TOMATOES","p":2.99},{"n":"HECKERS UNBLEACHED FLOUR","p":3.99},{"n":"BUMBLE BEE WHITE CHICKEN","p":2.29},{"n":"MRS. CUBBISON'S CROUTONS","p":1.99},{"n":"LYSOL ANTIBACTERIAL KITCHEN CLEANER","p":4.99},{"n":"HUNT'S TOMATO PASTE","p":12.99},{"n":"BETTY CROCKER FRUIT ROLL-UPS, CEREAL TREAT BARS","p":3.99},{"n":"COLAVITA PASTA","p":4.0},{"n":"CAROLINA BASMATI RICE","p":11.99},{"n":"QUAKER CHEWY PROTEIN GRANOLA BARS","p":4.99},{"n":"POLAND SPRING SPARKLING WATER","p":7.0},{"n":"BAKED KAISER ROLLS","p":7.0},{"n":"CARNATION SWEETENED CONDENSED MILK","p":3.49},{"n":"SEVENTH GENERATION LIQUID DETERGENT","p":13.99},{"n":"GOYA DRY BEANS","p":5.0},{"n":"NESTLE HOT COCOA MIX","p":2.69},{"n":"SNICKERS FUN SIZE","p":5.99},{"n":"MOTT'S JUICE BOXES","p":4.49},{"n":"NESQUIK CHOCOLATE DRINK MIX","p":4.99},{"n":"PURE VIA NATURAL SUGAR","p":2.49},{"n":"LIPTON UNSWEETENED ICED TEA MIX 2.6 Oz. Cnstr.","p":4.99},{"n":"SEVENTH GENERATION DETERGENT PAKS","p":14.99},{"n":"BETTY CROCKER MASHED POTATOES","p":1.29},{"n":"FABULOSO 2X LIQUID CLEANER","p":9.99},{"n":"BETTY CROCKER OR OREO CAKE MIX OR COOKIE MIX","p":3.99},{"n":"MARUCHAN Regular or Hot & Spicy Chicken \u2022 WONTON RAMEN \u2022 RICE BOWLS","p":1.99},{"n":"BETTY CROCKER FROSTING","p":5.0},{"n":"HEINEKEN BEER","p":10.99},{"n":"JELL-O PUDDING MIX","p":5.0},{"n":"NISSIN CUP NOODLES FAMILY PACK","p":5.49},{"n":"SEVENTH GENERATION DISH LIQUID","p":3.99},{"n":"4C SEASONED BREAD CRUMBS","p":5.99},{"n":"NABISCO BELVITA BISCUITS","p":4.49},{"n":"KRASDALE GRANULATED SUGAR","p":9.99},{"n":"Max Fresh or COLGATE TOTAL TOOTHPASTE","p":5.99},{"n":"KOOL-AID BURSTS","p":1.99},{"n":"KRASDALE VEGETABLE OIL","p":2.99},{"n":"OCEAN SPRAY CRANBERRY SAUCE","p":5.0},{"n":"PAM COOKING SPRAY","p":4.99},{"n":"MARUCHAN RAMEN NOODLES","p":5.49},{"n":"POMI DOUBLE CONCENTRATED TOMATO PASTE","p":1.99},{"n":"Cocoa Puffs Cereal, 10.4 Oz. Boxes","p":3.99},{"n":"COLGATE 360 TOOTHBRUSH","p":4.99},{"n":"LA CHOY SOY SAUCE","p":3.29},{"n":"GERBER BABY FOOD","p":1.69},{"n":"DEER PARK SPRING WATER","p":5.99},{"n":"LAY'S POTATO CHIPS XL","p":3.49},{"n":"LITEHOUSE APPLE DIPS","p":3.99},{"n":"Free Range NELLIE'S HARD BOILED EGGS","p":3.99},{"n":"Robinson Fresh Collard Greens","p":2.99},{"n":"KRASDALE CREAMY PEANUT BUTTER","p":4.49},{"n":"TROPICANA REFRESHERS DRINKS","p":5.0},{"n":"KRASDALE BROCCOLI FLORETS","p":4.0},{"n":"BIZZY COLD BREW COFFEE","p":6.99},{"n":"TASTEE APPLES","p":1.99},{"n":"GALBANI RICOTTA","p":3.99},{"n":"CELERY HEARTS","p":3.99},{"n":"OLD NEIGHBORHOOD MARINATED CHICKEN KABOBS","p":7.99},{"n":"HILLSHIRE FARM ULTRA THIN DELI MEATS","p":5.99},{"n":"DEL MONTE CORN","p":1.99},{"n":"CAROLINA JASMINE RICE","p":26.99},{"n":"CELENTANO ITALIAN MEATBALLS","p":3.99},{"n":"SABRETT BEEF COCKTAIL FRANKS","p":5.99},{"n":"RED \u2022 JUMBO WHITE SPANISH ONIONS","p":1.49},{"n":"FARMLAND ORGANIC MILK","p":5.99},{"n":"LIPTON TEA BAGS","p":0.99},{"n":"TREE RIPE PASSION FRUIT JUICE","p":2.99},{"n":"KOZY SHACK PUDDING","p":3.99},{"n":"SIGGI'S YOGURT","p":5.0},{"n":"SMOKED TURKEY \u2022 WINGS","p":3.69},{"n":"DUNKIN' GROUND COFFEE","p":11.49},{"n":"QUAKER OAT SHAKE & GO DRY SHAKE MIX","p":3.49},{"n":"NESTLE NOVELTIES","p":4.99},{"n":"RAO'S PIZZA","p":12.99}];
+const SAMPLE_PUNE=[{"n":"Aashirvaad Shudh Chakki Atta 5 kg","p":255,"src":"live"},{"n":"Charminar Long Grain Rice 5 kg","p":319,"src":"live"},{"n":"Good Life Toor Dal 1 kg","p":177,"src":"live"},{"n":"Good Life Moong Dal 1 kg","p":161,"src":"live"},{"n":"Good Life Masoor Dal 1 kg","p":117,"src":"live"},{"n":"Sunny Sunflower Oil 800 g","p":185,"src":"live"},{"n":"Tata Salt 1 kg","p":29,"src":"live"},{"n":"Good Life Turmeric Powder 100 g","p":34,"src":"live"},{"n":"Good Life Chilli Powder 100 g","p":48,"src":"live"},{"n":"Catch Coriander Powder 100 g","p":30,"src":"live"},{"n":"Good Life Jeera 100 g","p":41,"src":"live"},{"n":"Catch Super Garam Masala 200 g","p":52,"src":"live"},{"n":"Everest Kanda Lasun Masala 100 g","p":42,"src":"live"},{"n":"Desi Kitchen Ginger-Garlic Paste 200 g","p":33,"src":"live"},{"n":"Good Life Besan 500 g","p":55,"src":"live"},{"n":"Good Life Thick Poha 1 kg","p":77,"src":"live"},{"n":"Potato 1 kg","p":29,"src":"live"},{"n":"Amul Masti Dahi 500 g","p":45,"src":"live"},{"n":"Gowardhan Paneer 200 g","p":99,"src":"live"},{"n":"Frozen Green Peas","p":38,"src":"live"},{"n":"Onion 1 kg","p":35,"src":"est"},{"n":"Tomato 1 kg","p":35,"src":"est"},{"n":"Green Chilli 100 g","p":10,"src":"est"},{"n":"Coriander Leaves 100 g","p":10,"src":"est"},{"n":"Lemon 4 ct","p":12,"src":"est"},{"n":"Eggs 12 ct","p":85,"src":"est"},{"n":"Chicken Curry Cut 500 g","p":130,"src":"est"}];
+
+/* base: the unit costing works in. keep:true = bulk staple, bought once,
+   lasts weeks: the "starter pantry" half of the list. Everything else is
+   this week's shop. */
+const ING={
+ chicken:{l:"Chicken",a:"meat",u:"g",base:"g",m:/chicken|perdue|murgi/i,x:/soup|broth|stock|nugget|ramen|flavou?r|seasoning|salad|sauce|noodle/i},
+ beef:{l:"Ground beef",a:"meat",u:"g",base:"g",m:/ground beef|ground chuck|chopped meat|hamburger meat|keema/i},
+ pork:{l:"Pork",a:"meat",u:"g",base:"g",m:/pork|bacon|\bham\b/i,x:/soup|seasoning|burger|pepperoni|salami|sausage|hot ?dog|bologna|spam/i},
+ fish:{l:"Fish or shrimp",a:"meat",u:"g",base:"g",m:/salmon|tilapia|\bcod\b|shrimp|whiting|pollock|fish fillet|rohu|bangda/i,x:/oil|cake/i},
+ paneer:{l:"Paneer",a:"dairy",u:"g",base:"g",m:/paneer/i},
+ tofu:{l:"Tofu",a:"produce",u:"g",base:"g",m:/tofu|tempeh/i},
+ eggs:{l:"Eggs",a:"dairy",u:"ct",base:"ct",m:/\begg/i,x:/eggplant|nog|roll|noodle/i},
+ milk:{l:"Milk",a:"dairy",u:"g",base:"g",m:/\bmilk\b|almondmilk|oat milk|toned milk/i,x:/chocolate|shake|evaporated|condensed|bar\b/i},
+ curd:{l:"Curd or yoghurt",a:"dairy",u:"g",base:"g",m:/yogurt|yoghurt|\bcurd\b|\bdahi\b/i,x:/\bbar|covered/i},
+ cheese:{l:"Cheese",a:"dairy",u:"g",base:"g",m:/cheese|cheddar|mozzarella|queso/i,x:/cake|puff|cracker|macaroni|mac &|doodle|nip/i},
+ butter:{l:"Butter or ghee",a:"dairy",u:"g",base:"g",m:/\bbutter\b|margarine|\bghee\b/i,x:/peanut|apple|nut butter|cookie|\begg/i},
+ beans:{l:"Beans, canned",a:"pantry",u:"g",base:"g",m:/\bbeans?\b|goya|frijol|rajma|chhole/i,x:/green bean|string bean|coffee|vanilla|jelly/i},
+ chickpea:{l:"Chickpeas",a:"pantry",u:"g",base:"g",m:/chick ?pea|garbanzo|\bchana\b|chhole/i,x:/salad/i},
+ lentil:{l:"Dal or lentils",a:"pantry",u:"g",base:"g",keep:1,m:/lentil|\bdals?\b|\bdaal\b|split pea|toor|tuvar|masoor|moong|urad|arhar/i},
+ rice:{l:"Rice",a:"pantry",u:"g",base:"g",keep:1,m:/\brice\b|basmati|jasmine rice|indrayani|sona masoori/i,x:/cake|krispie|pudding|cereal|vinegar|milk|noodle/i},
+ atta:{l:"Atta or flour",a:"pantry",u:"g",base:"g",keep:1,m:/\batta\b|chakki|\bflour\b|maseca|aashirvaad/i,x:/tortilla|besan|corn ?flour/i},
+ besan:{l:"Besan",a:"pantry",u:"g",base:"g",keep:1,m:/\bbesan\b|gram flour|chickpea flour/i},
+ poha:{l:"Poha",a:"pantry",u:"g",base:"g",keep:1,m:/\bpoha\b|flattened rice|beaten rice/i},
+ pasta:{l:"Pasta",a:"pantry",u:"g",base:"g",keep:1,m:/pasta|spaghetti|penne|macaroni|rigatoni|ziti|linguine|rotini/i,x:/sauce|salad|\bmac &/i},
+ oats:{l:"Oats",a:"pantry",u:"g",base:"g",keep:1,m:/\boats?\b|oatmeal|cream of wheat/i,x:/cookie|bar\b/i},
+ oil:{l:"Cooking oil",a:"pantry",u:"g",base:"g",keep:1,m:/\boil\b/i,x:/motor|change|sardine/i},
+ masala:{l:"Spice kit",a:"pantry",u:"g",base:"g",keep:1,m:/masala|turmeric|haldi|chilli powder|jeera|cumin|coriander powder|garam|everest|catch\b/i,x:/\btea\b|chai/i},
+ ggpaste:{l:"Ginger-garlic paste",a:"pantry",u:"g",base:"g",keep:1,m:/ginger[- ]garlic|adrak lehsun/i},
+ bread:{l:"Bread",a:"pantry",u:"ct",base:"ct",m:/\bbread\b|roll|bagel|pita|\bnaan\b/i,x:/crumb|pudding|stuffing/i},
+ tortilla:{l:"Tortillas",a:"pantry",u:"ct",base:"ct",m:/tortilla|taco shell/i,x:/chip/i},
+ tuna:{l:"Canned tuna",a:"pantry",u:"g",base:"g",m:/\btuna\b|sardine/i,x:/steak|fresh|sushi/i},
+ tomcan:{l:"Tinned tomatoes",a:"pantry",u:"g",base:"g",m:/(crushed|diced|stewed|plum|canned) tomato|tomato (sauce|paste|puree)|passata/i},
+ coconut:{l:"Coconut milk",a:"pantry",u:"g",base:"g",m:/coconut milk|coconut cream/i},
+ potato:{l:"Potatoes",a:"produce",u:"g",base:"g",m:/potato|batata|aloo/i,x:/chip|sweet potato|roll|salad|tot|fries|puff/i},
+ sweetpot:{l:"Sweet potatoes",a:"produce",u:"g",base:"g",m:/sweet potato|\byam/i,x:/pie|casserole/i},
+ onion:{l:"Onions",a:"produce",u:"g",base:"g",m:/\bonions?\b|\bkanda\b|pyaz/i,x:/ring|soup|dip|powder|green onion|bagel/i},
+ garlic:{l:"Garlic",a:"produce",u:"g",base:"g",m:/\bgarlic\b|lehsun/i,x:/bread|powder|salt|sauce|paste/i},
+ ginger:{l:"Ginger",a:"produce",u:"g",base:"g",m:/\bginger\b|adrak/i,x:/ale|bread|snap|gold|paste/i},
+ carrot:{l:"Carrots",a:"produce",u:"g",base:"g",m:/carrot|gajar/i,x:/cake/i},
+ celery:{l:"Celery",a:"produce",u:"g",base:"g",m:/celery/i,x:/salt|seed/i},
+ tomato:{l:"Tomatoes",a:"produce",u:"g",base:"g",m:/tomato(es)?\b/i,x:/sauce|paste|canned|crushed|diced|soup|puree|juice|ketchup|tinned/i},
+ pepper:{l:"Capsicum or bell pepper",a:"produce",u:"ct",base:"ct",m:/bell pepper|sweet pepper|capsicum|\bpeppers\b/i,x:/black|chili powder|flake|corn|sauce|jack/i},
+ chilli:{l:"Green chilli",a:"produce",u:"g",base:"g",m:/green chilli|green chili|hari mirch|serrano|jalape/i,x:/powder|sauce|flake/i},
+ cilantro:{l:"Coriander leaves",a:"produce",u:"g",base:"g",m:/coriander leaf|coriander leaves|cilantro|\bdhania\b/i,x:/powder|seed/i},
+ cabbage:{l:"Cabbage",a:"produce",u:"g",base:"g",m:/cabbage|\bslaw\b|patta gobi/i,x:/dressing/i},
+ cauli:{l:"Cauliflower",a:"produce",u:"g",base:"g",m:/cauliflower|\bgobi\b/i},
+ broccoli:{l:"Broccoli",a:"produce",u:"g",base:"g",m:/broccoli/i},
+ spinach:{l:"Spinach or greens",a:"produce",u:"g",base:"g",m:/spinach|\bpalak\b|kale|collard|\bgreens\b|salad mix/i,x:/dressing|chick/i},
+ mushroom:{l:"Mushrooms",a:"produce",u:"g",base:"g",m:/mushroom/i,x:/soup|sauce/i},
+ peas:{l:"Peas",a:"frozen",u:"g",base:"g",m:/\bpeas\b|\bmatar\b|frozen (vegetable|veg|pea|mixed)|mixed vegetable/i},
+ corn:{l:"Corn",a:"pantry",u:"g",base:"g",m:/\bcorn\b/i,x:/flour|starch|oil|bread|flake|syrup|dog|beef/i},
+ apple:{l:"Apples",a:"produce",u:"g",base:"g",m:/\bapples?\b|\bseb\b/i,x:/juice|sauce|pie|cider|turnover/i},
+ lime:{l:"Limes or lemons",a:"produce",u:"ct",base:"ct",m:/\blimes?\b|\blemons?\b|\bnimbu\b/i,x:/juice|ade|soda|pepper|pledge/i}
+};
+const AISLE={produce:"Fresh · produce",meat:"Fresh · meat & fish",dairy:"Fresh · dairy & eggs",frozen:"Frozen",pantry:"Pantry"};
+const AORDER=["produce","meat","dairy","frozen","pantry"];
+
+/* ---- pack sizes: the hinge of per-serving costing ---- */
+const UCONV={kg:[1000,"g"],g:[1,"g"],gm:[1,"g"],gms:[1,"g"],gram:[1,"g"],grams:[1,"g"],
+ lb:[453.6,"g"],lbs:[453.6,"g"],oz:[28.35,"g"],l:[1000,"g"],ltr:[1000,"g"],litre:[1000,"g"],
+ liter:[1000,"g"],ml:[1,"g"],ct:[1,"ct"],count:[1,"ct"],pc:[1,"ct"],pcs:[1,"ct"],
+ pk:[1,"ct"],pack:[1,"ct"],dozen:[12,"ct"],doz:[12,"ct"]};
+const SIZERE=/(\d+(?:\.\d+)?)\s*(kg|gms|gm|grams|gram|g|lbs|lb|oz|ltr|litre|liter|l|ml|count|ct|pcs|pc|pack|pk|dozen|doz)\b/i;
+function parseSize(name){
+  const m=SIZERE.exec(name||"");
+  if(!m)return null;
+  const c=UCONV[m[2].toLowerCase()];
+  if(!c)return null;
+  const q=parseFloat(m[1])*c[0];
+  return q>0?{q:q,base:c[1]}:null;
+}
+</script>
+<script>
+"use strict";
+/* Quantities are in each ingredient's base unit for BASE servings:
+   one cook of 2 plus next-day lunch for 2, the way the brief counts it.
+   eq: what it needs. "pan" runs anywhere. */
+const BASE=4;
+const RECIPES=[
+{id:"masoordal",n:"Masoor dal + rice",c:"Pune week one",t:25,eq:"cooker",reg:"india",tags:["veg","vegan","gf"],
+ core:[["lentil",300],["onion",150],["tomato",200],["ggpaste",20],["masala",15],["oil",30],["rice",370]],
+ pantry:["salt","mustard seed"],
+ steps:["Rinse the masoor until the water runs clear. Cooker with turmeric, salt and 3x water.","Three whistles, then off the heat. Let it drop by itself.","Tadka: hot oil, mustard, ginger-garlic, onion to gold, tomato to collapse, masala in last.","Pour the tadka into the dal, not the other way round. Rice alongside."]},
+{id:"bhurji",n:"Egg bhurji + roti",c:"Pune week one",t:25,eq:"pan",reg:"india",tags:["veg","gf"],
+ core:[["eggs",6],["onion",200],["tomato",150],["chilli",15],["cilantro",20],["atta",300],["oil",30]],
+ pantry:["salt","turmeric","kanda lasun masala"],
+ steps:["Dough first: atta, water, a little oil. Knead 5 min, rest it while you cook.","Onion and chilli in hot oil until the onion goes translucent, then tomato until it breaks.","Beat the eggs with salt and turmeric, in they go. Keep the spatula moving: bhurji is scrambled, not an omelette.","Coriander off the heat. Roll and cook the rotis as you eat."]},
+{id:"poha",n:"Kanda-batata poha",c:"Pune week one",t:15,eq:"pan",reg:"india",tags:["veg","vegan","gf"],
+ core:[["poha",250],["potato",250],["onion",150],["chilli",10],["lime",1],["oil",30]],
+ pantry:["mustard seed","turmeric","salt","sugar","peanuts"],
+ steps:["Rinse the poha in a sieve, twice, then leave it to drain. It should crumble, never clump.","Mustard seeds in hot oil until they pop, then peanuts, chilli, onion, diced potato.","Lid on 6 min until the potato is tender.","Fold the poha through with turmeric, salt and a pinch of sugar. Lime at the table."]},
+{id:"chickencurry",n:"One-pot chicken curry + rice",c:"Pune week one",t:35,eq:"cooker",reg:"india",tags:["gf"],
+ core:[["chicken",700],["onion",300],["tomato",250],["ggpaste",30],["masala",20],["oil",40],["rice",370]],
+ pantry:["salt","turmeric","kanda lasun masala"],
+ steps:["Brown the onion properly in the cooker, 8 minutes, until it is actually brown. This is the dish.","Ginger-garlic, then tomato, then the masalas. Cook until oil separates at the edges.","Chicken in, coat it, one cup water, lid on. Two whistles.","Rest 10 min before opening. Rice on the side."]},
+{id:"khichdi",n:"Moong dal khichdi",c:"Pune week one",t:20,eq:"cooker",reg:"india",tags:["veg","gf"],
+ core:[["rice",250],["lentil",200],["carrot",150],["peas",150],["ggpaste",15],["oil",25]],
+ pantry:["turmeric","cumin","salt","ghee"],
+ steps:["Rinse rice and moong dal together.","Cumin in hot oil, ginger-garlic, then whatever sabzi was cheapest, diced small.","Grains in, turmeric, salt, 4x water. Three whistles.","It should pour, not stand up. Loosen with hot water and finish with ghee."]},
+{id:"chilla",n:"Besan chilla + dahi",c:"Pune week one",t:15,eq:"pan",reg:"india",tags:["veg","gf"],
+ core:[["besan",300],["onion",150],["chilli",10],["cilantro",20],["curd",300],["oil",30]],
+ pantry:["salt","turmeric","ajwain"],
+ steps:["Whisk besan with water to a thin pouring batter, thinner than you think. Rest 10 min.","Stir in finely chopped onion, chilli, coriander, salt, turmeric.","Ladle onto a hot oiled tawa, spread thin, oil round the edge. Flip when the top looks dry.","Dahi on the side. No cooker needed, which is the point on a tired night."]},
+{id:"matarpaneer",n:"Matar paneer",c:"Pune week one",t:30,eq:"pan",reg:"india",tags:["veg","gf"],
+ core:[["paneer",400],["peas",250],["onion",200],["tomato",250],["ggpaste",20],["masala",15],["oil",30],["rice",370]],
+ pantry:["salt","turmeric","garam masala"],
+ steps:["Cube the paneer and fry briefly to a pale gold. Lift it out: overcooked paneer goes rubbery.","Onion to brown, ginger-garlic, tomato until it is a paste and the oil shows.","Peas and half a cup of water, 5 min.","Paneer back in for the last 2 minutes only. Garam masala off the heat."]},
+{id:"chana",n:"Chana masala",c:"North Indian",t:30,eq:"pan",reg:"india",tags:["veg","vegan","gf"],
+ core:[["chickpea",800],["onion",400],["tomcan",400],["ggpaste",25],["masala",15],["rice",370]],
+ pantry:["oil","salt","garam masala"],
+ steps:["Brown the onion deeply, 10 min, and do not rush it.","Ginger-garlic and spices, 1 min until fragrant.","Tomatoes and chickpeas with their liquid. Simmer 15 min.","Mash a few chickpeas against the pan to thicken."]},
+{id:"aloogobi",n:"Aloo gobi",c:"North Indian",t:35,eq:"pan",reg:"india",tags:["veg","vegan","gf"],
+ core:[["potato",600],["cauli",600],["onion",200],["tomato",200],["masala",15],["oil",30]],
+ pantry:["turmeric","cumin","salt"],
+ steps:["Cube potatoes, break the cauliflower into florets.","Cumin, onion soft, then the spices.","Potatoes first with a splash of water, lid on 10 min.","Cauliflower and tomato, lid back on until just tender. Do not stir it to mush."]},
+{id:"pulao",n:"Vegetable pulao",c:"One pot",t:30,eq:"pan",reg:"india",tags:["veg","vegan","gf"],
+ core:[["rice",370],["peas",300],["onion",200],["carrot",200],["oil",30]],
+ pantry:["bay leaf","cumin","salt"],
+ steps:["Soak the rice 15 min, drain well.","Fry sliced onion until the edges catch colour.","Carrot, peas and rice, toss 2 min to coat.","Water at 1.5x the rice, boil, then covered on low 12 min. Rest 5 min before lifting the lid."]},
+{id:"riceandbeans",n:"Rice, beans & a fried egg",c:"Latin",t:25,eq:"pan",reg:"latin",tags:["veg","gf"],
+ core:[["rice",370],["beans",800],["eggs",4],["onion",200],["pepper",1]],
+ pantry:["cumin","oil","vinegar","salt"],
+ steps:["Start the rice.","Soften onion and pepper, add drained beans and cumin, simmer 10 min.","Splash in vinegar at the end. It wakes the whole pot up.","An egg each on top, yolk loose."]},
+{id:"traybake",n:"Chicken leg traybake",c:"Roast",t:55,eq:"oven",reg:"europe",tags:["gf"],
+ core:[["chicken",1100],["potato",900],["onion",450],["carrot",450],["oil",40]],
+ pantry:["paprika","salt","pepper"],
+ steps:["Oven to 220°C / 425°F.","Toss halved potatoes, thick carrot batons and onion wedges in oil and salt.","Chicken legs on top, skin rubbed with paprika and salt.","45–50 min, no turning. The fat bastes everything underneath."]},
+{id:"stirfry",n:"Chicken & cabbage stir-fry",c:"Fast",t:25,eq:"pan",reg:"any",tags:["gf"],
+ core:[["chicken",700],["cabbage",500],["carrot",200],["garlic",20],["rice",370]],
+ pantry:["soy sauce","oil","black pepper"],
+ steps:["Rice on first.","Slice the chicken thin, sear in a very hot pan, remove.","Same pan: garlic, then shredded cabbage and carrot, 4 min, keep it moving.","Chicken back, soy, lots of black pepper."]},
+{id:"porkapple",n:"Pork chops with apples",c:"Skillet",t:35,eq:"pan",reg:"europe",tags:["gf"],
+ core:[["pork",700],["apple",450],["onion",200],["potato",700]],
+ pantry:["oil","mustard","salt","pepper"],
+ steps:["Potatoes on to boil for mashing.","Salt the chops well, sear hard both sides, rest them.","In the same fat, sliced onion and apple until slumped and brown.","Chops back briefly, mustard stirred through the pan juices."]},
+{id:"chili",n:"Ground beef chili",c:"Big pot",t:45,eq:"pan",reg:"latin",tags:["gf"],
+ core:[["beef",450],["beans",800],["tomcan",400],["onion",200],["pepper",2]],
+ pantry:["chilli powder","cumin","oil","salt"],
+ steps:["Brown the beef hard and leave it alone until it crusts.","Onion and pepper soft, then the spices.","Tomatoes and beans, simmer 30 min, longer if you have it.","Makes double. Tomorrow it is better."]},
+{id:"picadillo",n:"Beef & potato picadillo",c:"Latin",t:40,eq:"pan",reg:"latin",tags:["gf"],
+ core:[["beef",450],["potato",700],["tomcan",400],["onion",200],["rice",370]],
+ pantry:["cumin","oregano","oil","salt"],
+ steps:["Brown beef with onion.","Small-diced potato, tomatoes, a cup of water.","Covered 20 min until the potato is soft and the sauce thick.","Over rice."]},
+{id:"tunapasta",n:"Tuna pasta with peas",c:"Pantry",t:20,eq:"pan",reg:"europe",tags:[],
+ core:[["pasta",400],["tuna",300],["peas",250],["onion",200]],
+ pantry:["oil","lemon","chilli flakes","salt"],
+ steps:["Boil the pasta. Peas in for the last 2 minutes.","Soften onion in plenty of oil with chilli flakes.","Tuna with its oil, broken up, not browned.","Toss with the pasta and a ladle of its water. Acid at the end."]},
+{id:"fagioli",n:"Pasta e fagioli",c:"Italian",t:40,eq:"pan",reg:"europe",tags:["veg"],
+ core:[["pasta",200],["beans",800],["tomcan",400],["carrot",150],["celery",150],["onion",200]],
+ pantry:["oil","rosemary","salt","pepper"],
+ steps:["Dice onion, carrot and celery fine, sweat slowly 10 min.","Tomatoes and one can of beans; mash the second can in to thicken.","4 cups water, simmer 15 min.","Cook the pasta straight in the pot, loosening as it drinks."]},
+{id:"shakshuka",n:"Shakshuka with bread",c:"Eggs for dinner",t:30,eq:"pan",reg:"any",tags:["veg"],
+ core:[["eggs",6],["tomcan",400],["pepper",2],["onion",200],["bread",8]],
+ pantry:["cumin","paprika","oil","salt"],
+ steps:["Pepper and onion in oil until completely soft, 12 min.","Spices, then tomatoes. Reduce until it mounds on the spoon.","Wells, eggs in, lid on, 6 min for set whites and loose yolks.","Bread, not cutlery."]},
+{id:"hash",n:"Potato & egg hash",c:"Breakfast for dinner",t:30,eq:"pan",reg:"any",tags:["veg","gf"],
+ core:[["potato",900],["eggs",6],["onion",200],["pepper",1]],
+ pantry:["oil","paprika","salt","pepper"],
+ steps:["Parboil diced potato 6 min, drain, let it steam dry. This is the whole trick.","Fry in a wide pan in a generous slick of oil, undisturbed, until crusted.","Onion and pepper for the last 5 min.","Eggs on top, lid on, 4 min."]},
+{id:"tacos",n:"Black bean tacos",c:"Fast",t:20,eq:"pan",reg:"latin",tags:["veg","vegan"],
+ core:[["tortilla",8],["beans",800],["cabbage",250],["lime",2],["onion",150]],
+ pantry:["cumin","oil","salt","hot sauce"],
+ steps:["Onion with cumin, drained beans in, mash half of them.","Shred the cabbage, dress with lime and salt. Ten minutes pickles it enough.","Char the tortillas over the flame or in a dry pan.","Beans, slaw, hot sauce."]},
+{id:"mushsoup",n:"Mushroom & rice soup",c:"Big pot",t:40,eq:"pan",reg:"europe",tags:["veg","vegan","gf"],
+ core:[["mushroom",400],["rice",185],["carrot",150],["celery",150],["onion",200]],
+ pantry:["thyme","soy sauce","oil","pepper"],
+ steps:["Brown the mushrooms in a dry hot pan first, then add oil. No crowding.","Onion, carrot, celery, 8 min.","Rice, thyme, 6 cups water. Simmer 25 min.","Soy sauce at the end for depth."]},
+{id:"sweetcurry",n:"Sweet potato & chickpea curry",c:"One pot",t:35,eq:"pan",reg:"india",tags:["veg","vegan","gf"],
+ core:[["sweetpot",900],["chickpea",800],["coconut",400],["onion",200],["rice",370]],
+ pantry:["curry powder","ginger","oil","salt"],
+ steps:["Onion soft, curry powder fried 1 min.","Cubed sweet potato, chickpeas, coconut milk and half a can of water.","Simmer 20 min until the potato gives to a spoon.","Salt generously. Over rice."]},
+{id:"tofubroc",n:"Tofu & broccoli over rice",c:"Fast",t:30,eq:"pan",reg:"any",tags:["veg","vegan"],
+ core:[["tofu",600],["broccoli",500],["rice",370],["garlic",20]],
+ pantry:["soy sauce","cornstarch","oil","chilli"],
+ steps:["Press the tofu while the rice cooks. Cube, toss in cornstarch.","Fry until every side is crisp, remove.","Broccoli and garlic with a splash of water, lid on, 4 min.","Tofu back, soy, chilli. Serve at once or it softens."]},
+{id:"frittata",n:"Vegetable frittata",c:"Eggs for dinner",t:30,eq:"pan",reg:"europe",tags:["veg","gf"],
+ core:[["eggs",8],["potato",450],["spinach",200],["cheese",150],["onion",200]],
+ pantry:["oil","salt","pepper"],
+ steps:["Thin-sliced potato and onion gently in oil until tender, 12 min.","Wilt the greens in and drive off the water.","Beat eggs with the cheese and plenty of salt, pour over.","Low heat 8 min, then under the grill until puffed."]},
+{id:"fishtray",n:"Baked fish with potatoes",c:"Roast",t:40,eq:"oven",reg:"europe",tags:["gf"],
+ core:[["fish",700],["potato",700],["lime",2],["onion",200]],
+ pantry:["oil","paprika","salt","pepper"],
+ steps:["Oven to 220°C / 425°F. Slice the potatoes thin.","Potatoes and onion in oil, 20 min until the edges colour.","Fish on top: oil, paprika, salt, lemon slices.","Back in 10–12 min. Done when it flakes without argument."]}
+];
+</script>
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const S={basket:[],deals:{},store:"",valid:"",mode:"sample",cur:"$",plan:[],rows:[],
+         est:{},qty:{},done:{},override:{},captures:0,curKnown:false};
+const money=n=>S.cur+(Math.round(n*100)/100).toFixed(2);
+const clean=s=>(s||"").replace(/\s+/g," ").trim();
+
+function save(){try{localStorage.setItem("f2f",JSON.stringify({
+  budget:$("budget").value,people:$("people").value,cuisine:$("cuisine").value,
+  diet:$("diet").value,nights:$("nights").value,equip:$("equip").value}));}catch(e){}}
+function load(){try{return JSON.parse(localStorage.getItem("f2f")||"{}")}catch(e){return{}}}
+function status(txt,kind){$("strip").querySelector(".dot").className="dot"+(kind?" "+kind:"");
+  $("stripTxt").innerHTML=txt;}
+function fmtQty(q,base){
+  if(base==="ct")return (Math.round(q*10)/10)+"";
+  if(q>=1000)return (Math.round(q/100)/10)+(base==="ml"?" l":" kg");
+  return Math.round(q)+" "+base;
+}
+
+/* ---------- matching & costing ---------- */
+function indexBasket(basket){
+  const deals={};
+  for(const it of basket){
+    for(const k in ING){
+      const g=ING[k];
+      if(!g.m.test(it.n))continue;
+      if(g.x&&g.x.test(it.n))continue;
+      /* a tile listing several products ("A • B • C") has one price and many
+         sizes - its pack size means nothing, so cost nothing from it */
+      const combo=/[\u2022|]/.test(it.n);
+      let size=it.size&&it.size.base===g.base?it.size:null;
+      if(!size&&!combo){const s=parseSize(it.n);if(s&&s.base===g.base)size=s;}
+      if(combo)size=null;
+      /* a shelf tag's own unit price is better evidence than dividing by pack size */
+      let unit=null;
+      if(it.unitPrice>0&&it.unitSize&&it.unitSize.base===g.base)unit=it.unitPrice/it.unitSize.q;
+      if(unit==null&&size)unit=it.p/size.q;
+      (deals[k]=deals[k]||[]).push({n:it.n,p:it.p,size:size,src:it.src||"live",
+        tagged:!!it.unitPrice,unit:unit});
+    }
+  }
+  for(const k in deals){
+    /* cheapest per unit wins when we know the pack size; otherwise cheapest sticker */
+    const sized=deals[k].filter(d=>d.unit!=null).sort((a,b)=>a.unit-b.unit);
+    const plain=deals[k].filter(d=>d.unit==null).sort((a,b)=>a.p-b.p);
+    deals[k]=sized.concat(plain).slice(0,4);
+  }
+  return deals;
+}
+function recipeCost(r){
+  let cost=0,costed=0;
+  for(const[k,q]of r.core){
+    const d=S.deals[k];
+    if(d&&d[0].unit!=null){cost+=q*d[0].unit;costed++;}
+  }
+  return{cost:cost,costed:costed,of:r.core.length,
+         per:costed?cost/BASE:null,full:costed===r.core.length};
+}
+const EQOK={all:["pan","cooker","oven"],cooker:["pan","cooker"],oven:["pan","oven"],pan:["pan"]};
+function dietOK(r,d){
+  if(d==="any")return true;
+  /* "veg" is the Indian sense: no egg. "eggveg" is the lacto-ovo sense. */
+  const hasEgg=r.core.some(c=>c[0]==="eggs");
+  if(d==="eggveg")return r.tags.includes("veg");
+  if(d==="veg")return r.tags.includes("veg")&&!hasEgg;
+  if(d==="vegan")return r.tags.includes("vegan");
+  const keys=r.core.map(c=>c[0]);
+  if(d==="nopork")return !keys.includes("pork");
+  if(d==="nobeef")return !keys.includes("beef");
+  return true;
+}
+function buildPlan(diet,nights,equip,region){
+  const ok=EQOK[equip]||EQOK.all;
+  const pool=RECIPES.filter(r=>dietOK(r,diet)&&ok.indexOf(r.eq)>=0);
+  /* cuisine is a weight, never a gate: a euro basket should stop serving pulao
+     without leaving the week unfillable when the pool is thin */
+  const fit=r=>!region||region==="any"?0:(r.reg===region?0.55:r.reg==="any"?0.15:-0.25);
+  const picked=[],cart=new Set();
+  while(picked.length<nights&&picked.length<pool.length){
+    let best=null,bestS=-1;
+    for(const r of pool){
+      if(picked.indexOf(r)>=0)continue;
+      const hits=r.core.filter(c=>S.deals[c[0]]).length;
+      const reuse=r.core.filter(c=>cart.has(c[0])).length;
+      let s=hits/r.core.length+reuse/r.core.length*0.42+fit(r);
+      const prot=r.core.map(c=>c[0]).find(k=>ING[k]&&ING[k].a==="meat");
+      if(prot&&picked.some(p=>p.core.some(c=>c[0]===prot)))s-=0.30;
+      if(picked.length&&picked[picked.length-1].c===r.c)s-=0.12;
+      if(s>bestS){bestS=s;best=r;}
+    }
+    if(!best)break;
+    picked.push(best);best.core.forEach(c=>cart.add(c[0]));
+  }
+  return picked;
+}
+function buildRows(plan,people){
+  const scale=people/BASE,agg={};
+  for(const r of plan)for(const[k,q]of r.core){
+    if(!agg[k])agg[k]={k:k,need:0,from:[]};
+    agg[k].need+=q*scale;agg[k].from.push(r.n);
+  }
+  const rows=[];
+  for(const k in agg){
+    const g=ING[k],d=S.deals[k]?S.deals[k][0]:null;
+    const packs=d&&d.size?Math.max(1,Math.ceil(agg[k].need/d.size.q)):null;
+    rows.push({k:k,label:g.l,aisle:g.a,keep:!!g.keep,base:g.base,
+      need:agg[k].need,deal:d,packs:packs,uses:[...new Set(agg[k].from)]});
+  }
+  rows.sort((a,b)=>AORDER.indexOf(a.aisle)-AORDER.indexOf(b.aisle)||a.label.localeCompare(b.label));
+  return rows;
+}
+
+/* the capture decides the cooking unless the cook overrules it */
+function activeRegion(){
+  const pick=$("cuisine").value;
+  return pick==="auto"?(S.region||"any"):pick;
+}
+
+/* ---------- provenance ----------
+   live  = read off a shelf or a flyer      photo = read by Claude from a capture
+   est   = a market estimate, or your own figure */
+const PROV={live:{t:"LIVE",c:"var(--sale)"},photo:{t:"PHOTO",c:"var(--photo)"},
+            est:{t:"EST",c:"var(--warn)"}};
+function rowSrc(r){
+  if(S.override[r.k]!=null)return "est";
+  return r.deal?(r.deal.src||"live"):"est";
+}
+function rowPrice(r){
+  if(S.override[r.k]!=null)return S.override[r.k];
+  if(r.deal)return r.deal.p;
+  return S.est[r.k]!=null&&!isNaN(S.est[r.k])?S.est[r.k]:null;
+}
+
+/* ---------- render ---------- */
+const DAYNM=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+function renderPlan(){
+  const wrap=$("days");wrap.innerHTML="";
+  const today=new Date(),people=Math.max(1,+$("people").value||2);
+  S.plan.forEach((r,i)=>{
+    const d=new Date(today);d.setDate(today.getDate()+i);
+    const c=recipeCost(r);
+    const card=document.createElement("article");card.className="day";
+    const chips=r.core.map(([k,q])=>{
+      const g=ING[k],dl=S.deals[k];
+      const amt=fmtQty(q*people/BASE,g.base);
+      return dl?`<span class="chip on">${g.l} ${amt}<span class="pr">${dl[0].unit!=null?money(q*people/BASE*dl[0].unit):money(dl[0].p)}</span></span>`
+               :`<span class="chip">${g.l} ${amt}</span>`;}).join("");
+    card.innerHTML=
+      `<button class="day-top" aria-expanded="false">
+         <span class="daytag">${DAYNM[d.getDay()].slice(0,3)}<b>${d.getDate()}</b></span>
+         <span><h3>${r.n}</h3><span class="meta">${r.c} · ${r.t} min · ${r.eq==="cooker"?"pressure cooker":r.eq==="oven"?"oven":"hob only"} · cooks ${people} dinners + ${people} lunches</span></span>
+         <span class="hitbadge">${c.per!=null
+            ?`<span class="n">${money(c.per)}</span><span class="l">per serving${c.full?"":" · part"}</span>`
+            :`<span class="n">${r.core.filter(c=>S.deals[c[0]]).length}/${r.core.length}</span><span class="l">on sale</span>`}</span>
+       </button>
+       <div class="day-body" hidden>
+         <h4>For ${people} eaters</h4><div class="chips">${chips}</div>
+         <h4>From the cupboard</h4><div class="chips">${r.pantry.map(p=>`<span class="chip">${p}</span>`).join("")}</div>
+         <h4>Method</h4><ol class="steps">${r.steps.map(s=>`<li>${s}</li>`).join("")}</ol>
+         <h4>Costing</h4><div class="caveat" style="border:0;padding:0;margin:0">
+           ${c.costed} of ${c.of} ingredients priced from a pack whose size is known${c.full?"":"; the rest are not in the total"}.</div>
+       </div>`;
+    const btn=card.querySelector(".day-top"),body=card.querySelector(".day-body");
+    btn.addEventListener("click",()=>{const o=body.hidden;body.hidden=!o;
+      btn.setAttribute("aria-expanded",String(o));});
+    wrap.appendChild(card);
+  });
+  const costed=S.plan.map(recipeCost).filter(c=>c.per!=null);
+  const avg=costed.length?costed.reduce((a,c)=>a+c.per,0)/costed.length:null;
+  /* diet and kit can leave a cuisine with almost nothing; say so rather than
+     quietly serving something else */
+  const reg=activeRegion(),want=reg&&reg!=="any";
+  const onreg=want?S.plan.filter(r=>r.reg===reg).length:0;
+  $("planNote").textContent=`${S.plan.length} nights`+
+    (avg!=null?` · ${money(avg)} a serving on average`:"")+
+    (want&&onreg<Math.ceil(S.plan.length/2)
+      ? ` · your diet and kit leave few ${REGNAME[reg]} options, so the rest come from elsewhere`
+      : ` · each cook makes dinner + next-day lunch`);
+}
+function lineRow(r){
+  const q=S.qty[r.k]==null?(r.packs||1):S.qty[r.k];
+  const src=rowSrc(r),pv=PROV[src];
+  const el=document.createElement("div");
+  el.className="row"+(S.done[r.k]?" done":"");
+  const what=r.deal
+    ? `${r.deal.n.toLowerCase()}${r.deal.size?" ("+fmtQty(r.deal.size.q,r.base)+" pack)":""}${r.deal.tagged?", unit price off the tag":""}`
+    : "not in this list";
+  const srcHtml=`${fmtQty(r.need,r.base)} needed \u00b7 `+
+    `<b id="tag-${r.k}" style="color:${pv.c}">${pv.t}</b> ${what}`;
+  /* a photo-read price is real but OCR-mediated, so it stays editable;
+     touching it makes the figure yours, and the tag says so */
+  let priceCell;
+  if(r.deal&&(r.deal.src||"live")==="photo")
+    priceCell=`<div class="price"><input class="photo" type="number" min="0" step="0.01"
+      id="ov-${r.k}" value="${S.override[r.k]!=null?S.override[r.k]:r.deal.p}"
+      aria-label="Price for ${r.label}, read from your photo"></div>`;
+  else if(r.deal)
+    priceCell=`<div class="price flyer" style="color:${pv.c}">${money(r.deal.p*q)}</div>`;
+  else
+    priceCell=`<div class="price"><input type="number" min="0" step="0.01" placeholder="est."
+      id="est-${r.k}" value="${S.est[r.k]!=null?S.est[r.k]:""}" aria-label="Estimated price for ${r.label}"></div>`;
+  el.innerHTML=
+    `<input type="checkbox" id="ck-${r.k}" ${S.done[r.k]?"checked":""} aria-label="Got ${r.label}">
+     <div class="nm"><b>${r.label}</b><div class="src">${srcHtml}</div></div>
+     <input class="qty" type="number" min="0" step="1" value="${q}" id="q-${r.k}" aria-label="Packs of ${r.label}">
+     ${priceCell}`;
+  el.querySelector("#ck-"+r.k).addEventListener("change",function(e){
+    S.done[r.k]=e.target.checked;el.classList.toggle("done",e.target.checked);});
+  el.querySelector("#q-"+r.k).addEventListener("input",function(e){
+    S.qty[r.k]=Math.max(0,+e.target.value||0);renderTotals();});
+  const ei=el.querySelector("#est-"+r.k);
+  if(ei)ei.addEventListener("input",function(e){
+    S.est[r.k]=e.target.value===""?null:+e.target.value;renderTotals();});
+  const oi=el.querySelector("#ov-"+r.k);
+  if(oi)oi.addEventListener("input",function(e){
+    const v=e.target.value===""?null:+e.target.value;
+    S.override[r.k]=(v==null||v===r.deal.p)?null:v;
+    const tag=el.querySelector("#tag-"+r.k),np=PROV[rowSrc(r)];
+    tag.textContent=np.t;tag.style.color=np.c;
+    renderTotals();});
+  return el;
+}
+function renderList(){
+  const host=$("list");host.innerHTML="";
+  let priced=0;
+  for(const a of AORDER){
+    const rows=S.rows.filter(r=>r.aisle===a&&!r.keep);
+    if(!rows.length)continue;
+    const sec=document.createElement("div");sec.className="aisle";
+    sec.innerHTML=`<div class="aisle-h"><span class="nm">${AISLE[a]}</span>
+      <span class="ln"></span><span class="ct">${rows.length}</span></div>`;
+    rows.forEach(r=>{if(r.deal)priced++;sec.appendChild(lineRow(r));});
+    host.appendChild(sec);
+  }
+  const keep=S.rows.filter(r=>r.keep);
+  $("pantrySec").hidden=!keep.length;
+  if(keep.length){
+    const ph=$("pantryList");ph.innerHTML="";
+    const sec=document.createElement("div");sec.className="aisle";
+    keep.forEach(r=>{if(r.deal)priced++;sec.appendChild(lineRow(r));});
+    ph.appendChild(sec);
+    $("pantryNote").textContent=`${keep.length} bulk staples · bought once · lasts weeks`;
+  }
+  const weekly=S.rows.filter(r=>!r.keep).length;
+  $("listNote").textContent=`${weekly} items · ${priced} priced from the flyer`;
+}
+function sumRows(rows){
+  const b={live:0,photo:0,est:0,own:0};
+  let missing=0;
+  for(const r of rows){
+    const q=S.qty[r.k]==null?(r.packs||1):S.qty[r.k];
+    const p=rowPrice(r);
+    if(p==null){missing++;continue;}
+    const v=p*q;
+    if(S.override[r.k]!=null)b.own+=v;
+    else if(!r.deal)b.own+=v;
+    else if(r.deal.src==="photo")b.photo+=v;
+    else if(r.deal.src==="est")b.est+=v;
+    else b.live+=v;
+  }
+  b.missing=missing;b.tot=b.live+b.photo+b.est+b.own;
+  return b;
+}
+function renderTotals(){
+  const w=sumRows(S.rows.filter(r=>!r.keep)),p=sumRows(S.rows.filter(r=>r.keep));
+  const b=+$("budget").value||0;
+  $("curHint").textContent=S.cur==="\u20B9"?"Indian rupees":S.cur==="C$"?"Canadian dollars":
+    S.cur==="$"?"US dollars":"Local currency";
+  $("total").textContent=money(w.tot);
+  $("total").className="bigfig "+(b&&w.tot>b?"over":"under");
+  const pct=v=>b?Math.min(100,v/b*100):0;
+  $("mf").style.width=pct(w.live+w.photo)+"%";
+  $("me").style.width=Math.max(0,Math.min(100-pct(w.live+w.photo),pct(w.est+w.own)))+"%";
+  const left=b-w.tot;
+  const line=(label,val,col)=>val?`<div><span${col?' style="color:'+col+'"':''}>${label}</span><span>${money(val)}</span></div>`:"";
+  $("ledger").innerHTML=
+    line("LIVE, read off the shelf",w.live,"var(--sale)")+
+    line("PHOTO, read from your capture",w.photo,"var(--photo)")+
+    line("EST, market estimate",w.est,"var(--warn)")+
+    line("EST, your figures",w.own,"var(--warn)")+
+    (w.missing?`<div><span style="color:var(--warn)">Unpriced (${w.missing})</span><span>n/a</span></div>`:"")+
+    `<div class="tot"><span>${left>=0?"Under budget by":"Over budget by"}</span>
+       <span style="color:${left>=0?"var(--good)":"var(--sale)"}">${money(Math.abs(left))}</span></div>`+
+    (p.tot?`<div class="tot"><span>Starter pantry, one-time</span><span>${money(p.tot)}</span></div>`:"");
+  $("caveat").innerHTML=
+    `<b>LIVE</b> is a price read off a shelf or a flyer. <b>PHOTO</b> is one Claude read from your capture, `+
+    `so check it. <b>EST</b> is an estimate: marked as such by the source, or typed by you. `+
+    `Change a PHOTO price and it becomes yours. The four are never silently blended.<br><br>`+
+    (S.rows.some(r=>r.deal&&r.deal.size)
+      ? `Pack counts are worked out from the pack size on the offer, so the quantity column starts at what the week actually needs.`
+      : `No pack sizes were found, so quantities start at one of each. Set them to what you will really buy.`)+
+    ` A sale-price estimate, not a checkout total.`;
+  const cheap=Object.keys(S.deals).filter(k=>S.deals[k][0].unit!=null)
+    .map(k=>({k:k,d:S.deals[k][0]})).sort((a,b)=>a.d.unit-b.d.unit).slice(0,6);
+  $("swapPanel").hidden=!cheap.length;
+  if(cheap.length)$("swaps").innerHTML=cheap.map(c=>
+    `<div class="swap"><b>${money(c.d.unit*1000)}</b><span>${ING[c.k].l} per ${c.d.size&&c.d.size.base==="ct"?"1000":"kg/l"}, <span style="color:var(--ink3)">${c.d.n.toLowerCase()}</span></span></div>`).join("");
+}
+function rebuild(){
+  S.deals=indexBasket(S.basket);
+  S.plan=buildPlan($("diet").value,Math.max(3,Math.min(7,+$("nights").value||7)),$("equip").value,activeRegion());
+  S.rows=buildRows(S.plan,Math.max(1,+$("people").value||2));
+  S.qty={};S.est={};S.done={};S.override={};
+  $("cols").hidden=false;
+  renderPlan();renderList();renderTotals();
+  $("foot").innerHTML=`Prices: ${S.mode==="photo"?"read by Claude from "+S.captures+" capture"+(S.captures===1?"":"s"):S.mode==="manual"?"typed by you":"a saved sample"}`+
+    (S.store?` · ${S.store}`:"")+(S.valid?` · valid to ${S.valid}`:"")+
+    `. Advertised sale prices change weekly, so always check at the shelf. Recipes are written for ${BASE} servings and scaled; quantities are a cook's estimate, not a nutrition plan.`;
+}
+</script>
+<script>
+"use strict";
+/* ---- your reader endpoint (printed by infra/deploy.sh) ---- */
+const READ_ENDPOINT="https://9gjyrqxeve.execute-api.us-east-1.amazonaws.com/api/read";
+const IMGLIM={maxCount:6,maxInputBytes:6*1024*1024,
+  mediaTypes:["image/jpeg","image/png","image/webp","image/gif"]};
+const blobToB64=b=>new Promise(function(res,rej){
+  const r=new FileReader();
+  r.onload=function(){res(String(r.result).split(",")[1]||"");};
+  r.onerror=function(){rej(new Error("could not read the file"));};
+  r.readAsDataURL(b);});
+
+const SAMPLES={
+  pune:{items:function(){return SAMPLE_PUNE;},store:"JioMart, Pune 411001",valid:"2026-10-18",
+    cur:"₹",budget:700,region:"india",
+    sub:"Example · JioMart, Pune 411001<br>shelf prices read 18 Oct 2026",
+    strip:"This is a <b>worked example</b>: a real Pune shelf run, 20 live JioMart prices plus 7 marked EST. "+
+          "Upload your own and it is replaced, cooking and currency included."},
+  us:{items:function(){return SAMPLE_US;},store:"C Town, New York",valid:"2026-10-22",
+    cur:"$",budget:75,region:"any",
+    sub:"Example · C Town, New York<br>flyer week of 16–22 Oct 2026",
+    strip:"This is a <b>worked example</b>: a real New York circular, 313 advertised prices."}
+};
+function useSample(which){
+  const s=SAMPLES[which]||SAMPLES.pune;
+  S.basket=s.items().slice();S.store=s.store;S.valid=s.valid;S.mode="sample";S.cur=s.cur;
+  S.captures=0;S.curKnown=true;S.region=s.region;S.sample=which||"pune";S.where="";
+  $("curField").hidden=true;
+  if(!S.touchedBudget)$("budget").value=s.budget;
+  $("photoBtn").textContent="Upload prices";
+  $("resetBtn").hidden=true;
+  $("mastSub").innerHTML=s.sub;
+  rebuild();
+  status(s.strip);
+}
+function toManual(why){
+  $("manualWhy").innerHTML=why;
+  $("manualWrap").hidden=false;
+  status("Type what the staples cost where you actually shop.","warn");
+  $("manualTxt").focus();
+}
+function parseManual(txt){
+  const out=[];
+  for(const line of txt.split("\n")){
+    const l=clean(line);
+    if(!l)continue;
+    const m=l.match(/^(.*?)[,;:\t]\s*([\d.,]+)\s*$/)||l.match(/^(.+?)\s+([\d.]+)\s*$/);
+    if(!m)continue;
+    const p=parseFloat(m[2].replace(/,(?=\d{3}\b)/g,"").replace(/,/g,"."));
+    const n=clean(m[1]);
+    if(!n||!isFinite(p)||p<=0)continue;
+    out.push({n:n,p:p,size:parseSize(n),src:"est"});
+  }
+  return out;
+}
+
+/* ---------- the flyer reader ---------- */
+const READ_PROMPT=
+"These images show where grocery prices live. They may be any of:\n"+
+"  (a) a printed weekly circular or a store's weekly-ad page;\n"+
+"  (b) a grocery or delivery app's offers tab or listing screen (JioMart, Blinkit, Zepto, Instamart and the like);\n"+
+"  (c) SHELF PRICE TAGS photographed in the aisle;\n"+
+"  (d) a till RECEIPT from a recent shop.\n\n"+
+"Extract every FOOD or GROCERY item that shows a price.\n\n"+
+"Reply with only a JSON object:\n"+
+'{"currency": string, "place": string, "language": string, "items": [{"name": string, "price": number, "size": string, "unit_price": number, "unit_size": string}]}\n\n'+
+"- currency: the symbol or code actually VISIBLE in the images, such as ₹ or $ or € or £ or \"Rs.\". "+
+"Empty string if nothing in the image shows one. Do not infer it from the language or the products.\n"+
+"- place: the country, city or shop name if the images show one, such as \"Pune, India\", \"Malta\", \"Lidl Ireland\". "+
+"Empty string if nothing identifies a place. Do not guess it from the currency alone.\n"+
+"- language: the main language of the text, named in English, such as \"English\", \"Maltese\", \"Hindi\". "+
+"Empty string if unclear.\n"+
+"- name: the product as printed, brand included, with no price text in it.\n"+
+"- price: what one pack costs, as a plain number, no currency symbol and no thousands separator. "+
+"Where both a struck-through MRP and a lower offer price are shown, take the LOWER one.\n"+
+"- size: the pack size exactly as printed, such as \"1 kg\", \"500 g\", \"800 ml\", \"12 ct\". Empty string if none is shown.\n"+
+"- unit_price and unit_size: ONLY when the image prints a price per unit, as shelf tags often do "+
+"(\"$0.12/oz\", \"₹85.00 per 100 g\"). Then unit_price is 0.12 and unit_size is \"1 oz\". "+
+"Omit both when no unit price is printed. Never calculate one yourself.\n\n"+
+"On a RECEIPT: the prices are what was actually paid. Skip tax lines, subtotals, totals, change, "+
+"loyalty and discount rows, and anything that is not food.\n"+
+"On SHELF TAGS: one object per tag.\n\n"+
+"Skip non-food items, delivery and membership banners, and anything whose price you cannot read with confidence. "+
+"Never invent a price, a pack size or a unit price. Leave the item out instead.\n\n"+
+'Example: {"currency":"₹","place":"Pune, India","language":"English","items":[{"name":"Good Life Toor Dal","price":177,"size":"1 kg"}]}';
+
+const CURMAP={"rs":"₹","rs.":"₹","inr":"₹","₹":"₹","usd":"$","$":"$","us$":"$",
+ "eur":"€","€":"€","gbp":"£","£":"£","cad":"C$","c$":"C$","aud":"A$","a$":"A$",
+ "zar":"R","ngn":"₦","₦":"₦","jpy":"¥","¥":"¥","myr":"RM","rm":"RM"};
+function normCur(v){
+  const t=clean(String(v||"")).toLowerCase();
+  if(!t)return null;
+  return CURMAP[t]||(t.length<=3?clean(String(v)):null);
+}
+/* what the capture says about where it came from: a named place beats a
+   language, a language beats a currency, and none of it is a hard rule */
+const PLACES=[
+ [/\bindia|bharat|pune|mumbai|delhi|bengaluru|bangalore|chennai|kolkata|hyderabad|jio|dmart|blinkit|zepto|bigbasket\b/i,"india"],
+ [/\bmexic|guatemala|honduras|salvador|colombia|peru|chile|argentin|brasil|brazil|supermercado|bodega\b/i,"latin"],
+ [/\bmalta|italy|italia|spain|espa|france|french|portugal|germany|deutsch|ireland|irish|netherland|belgi|poland|polska|greece|austria|sweden|denmark|norway|finland|czech|hungary|romania|croatia|united kingdom|britain|england|scotland|wales|lidl|aldi|carrefour|tesco|sainsbury|mercadona|albert heijn\b/i,"europe"]];
+const LANGS=[
+ [/hindi|marathi|gujarati|tamil|telugu|bengali|kannada|punjabi|urdu/i,"india"],
+ [/spanish|portuguese/i,"latin"],
+ [/maltese|italian|french|german|dutch|polish|greek|swedish|danish|norwegian|finnish|czech|hungarian|romanian|croatian/i,"europe"]];
+function regionFrom(place,language,cur){
+  const p=clean(String(place||""));
+  for(const pair of PLACES)if(pair[0].test(p))return pair[1];
+  const l=clean(String(language||""));
+  for(const pair of LANGS)if(pair[0].test(l))return pair[1];
+  if(cur==="₹")return "india";
+  if(cur==="€"||cur==="£")return "europe";
+  return null;
+}
+function syncCuisineHint(){
+  $("cuisineHint").textContent=$("cuisine").value!=="auto"?"Your choice, not the capture"
+    :S.region&&S.region!=="any"?"Reading as "+REGNAME[S.region]
+    :"Nothing named a place";
+}
+const REGNAME={india:"Indian",europe:"European",latin:"Latin American",any:"anything"};
+/* a budget figure means nothing across currencies, so move it with the money */
+const BUDGETS={"₹":700,"$":75,"C$":95,"A$":110,"€":90,"£":75,"R":900,"RM":300};
+function setBudgetFor(cur){
+  if(S.touchedBudget)return;
+  if(BUDGETS[cur])$("budget").value=BUDGETS[cur];
+}
+const normName=n=>clean(String(n||"")).toLowerCase().replace(/[^a-z0-9 ]/g,"").trim();
+
+const ERRCOPY={
+  image_rejected:"That file could not be read. Try a JPEG or PNG under 6 MB.",
+  cancelled:"Stopped."
+};
+/* ---------- PDFs ----------
+   A circular often arrives as a file, not a photo. The page cannot fetch, but it
+   may load a script from the allowed CDN, so pages are rasterised here and the
+   reader never knows the difference. */
+const PDFLIB="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+const PDFWORK="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+let PDFPAGES=[],PDFEXTRA=[];
+function loadScript(src){
+  return new Promise(function(res,rej){
+    const s=document.createElement("script");
+    s.src=src;s.async=true;
+    s.onload=function(){res();};
+    s.onerror=function(){rej(new Error("the CDN script was blocked"));};
+    document.head.appendChild(s);
+  });
+}
+async function pdfLib(){
+  if(window.pdfjsLib)return window.pdfjsLib;
+  await loadScript(PDFLIB);
+  if(!window.pdfjsLib)throw new Error("the library did not register");
+  try{window.pdfjsLib.GlobalWorkerOptions.workerSrc=PDFWORK;}catch(e){}
+  return window.pdfjsLib;
+}
+async function renderPdf(file,offset){
+  const lib=await pdfLib();
+  /* this sandbox forbids eval and may forbid a cross-origin worker, so ask
+     pdf.js for the conservative path rather than let it discover the walls */
+  const doc=await lib.getDocument({data:await file.arrayBuffer(),
+    isEvalSupported:false,useSystemFonts:false,disableFontFace:true}).promise;
+  const out=[];
+  for(let n=1;n<=doc.numPages;n++){
+    status('<span class="spin"></span> Rendering page '+n+' of '+doc.numPages+'…');
+    const page=await doc.getPage(n);
+    const base=page.getViewport({scale:1});
+    const vp=page.getViewport({scale:Math.min(2.4,1500/base.width)});
+    const cv=document.createElement("canvas");
+    cv.width=Math.ceil(vp.width);cv.height=Math.ceil(vp.height);
+    await page.render({canvasContext:cv.getContext("2d"),viewport:vp}).promise;
+    const blob=await new Promise(function(r){cv.toBlob(r,"image/jpeg",0.85);});
+    const th=document.createElement("canvas");
+    th.width=150;th.height=Math.max(1,Math.round(150*cv.height/cv.width));
+    th.getContext("2d").drawImage(cv,0,0,th.width,th.height);
+    out.push({n:offset+n,blob:blob,thumb:th.toDataURL("image/jpeg",0.6)});
+  }
+  return out;
+}
+function pdfCount(){
+  const max=IMGLIM?IMGLIM.maxCount:8;
+  const sel=PDFPAGES.filter(function(r){return r.on;}).length+PDFEXTRA.length;
+  $("pdfNote").textContent=sel+" of "+(PDFPAGES.length+PDFEXTRA.length)+" selected"+
+    (sel>max?", and "+max+" is the most one read can take":"");
+  $("pdfGo").disabled=sel===0||sel>max;
+}
+function showPicker(pages,extras){
+  const max=IMGLIM?IMGLIM.maxCount:8;
+  PDFPAGES=pages.map(function(p,i){return{p:p,on:i<max-extras.length};});
+  PDFEXTRA=extras;
+  const host=$("pdfPages");host.innerHTML="";
+  PDFPAGES.forEach(function(rec){
+    const b=document.createElement("button");
+    b.type="button";b.className="pg"+(rec.on?" on":"");
+    b.setAttribute("aria-pressed",String(rec.on));
+    b.innerHTML='<span class="n">p'+rec.p.n+'</span><span class="tick">✓</span>'+
+                '<img alt="Page '+rec.p.n+'" src="'+rec.p.thumb+'">';
+    b.addEventListener("click",function(){
+      rec.on=!rec.on;
+      b.classList.toggle("on",rec.on);
+      b.setAttribute("aria-pressed",String(rec.on));
+      pdfCount();});
+    host.appendChild(b);
+  });
+  $("pdfWhy").innerHTML="Most of a circular is not food. Tick only the grocery pages: "+
+    "a few close pages read far better than the whole book"+
+    (extras.length?", and your "+extras.length+" photo"+(extras.length===1?" is":"s are")+" already included":"")+".";
+  $("pdfWrap").hidden=false;
+  pdfCount();
+}
+async function onFiles(files){
+  const all=Array.prototype.slice.call(files);
+  if(!all.length)return;
+  const isPdf=function(f){return /pdf/i.test(f.type||"")||/\.pdf$/i.test(f.name||"");};
+  const pdfs=all.filter(isPdf),imgs=all.filter(function(f){return !isPdf(f);});
+  if(!pdfs.length){$("photoInput").value="";return readImages(imgs);}
+  $("photoBtn").disabled=true;
+  try{
+    let pages=[];
+    for(const f of pdfs)pages=pages.concat(await renderPdf(f,pages.length));
+    if(!pages.length)throw new Error("no pages came out of it");
+    showPicker(pages,imgs);
+    status("<b>"+pages.length+" page"+(pages.length===1?"":"s")+"</b> rendered from the PDF. "+
+           "Tick the ones with groceries on them.");
+  }catch(e){
+    $("pdfWrap").hidden=true;PDFPAGES=[];PDFEXTRA=[];
+    status("That PDF could not be opened here"+(e&&e.message?" ("+e.message+")":"")+
+           ". Screenshot the grocery pages and upload those instead.","err");
+  }finally{
+    $("photoBtn").disabled=false;
+    $("photoInput").value="";
+  }
+}
+
+async function readImages(list){
+  if(!READ_ENDPOINT||READ_ENDPOINT.indexOf("REPLACE_WITH")===0){
+    status("This copy has no reader endpoint set yet. Use <b>Type prices</b>.","warn");return;}
+  const imgs=Array.prototype.slice.call(list,0,IMGLIM.maxCount);
+  if(!imgs.length)return;
+  const appending=S.mode==="photo"&&S.basket.length>0;
+  $("photoBtn").disabled=true;
+  status('<span class="spin"></span> Claude is reading '+imgs.length+' image'+(imgs.length>1?"s":"")+
+         ', this takes up to a minute…');
+  try{
+    const payload={images:await Promise.all(imgs.map(async function(f){
+      return{media_type:f.type||"image/jpeg",data:await blobToB64(f)};}))};
+    const r=await fetch(READ_ENDPOINT,{method:"POST",
+      headers:{"content-type":"application/json"},body:JSON.stringify(payload)});
+    const data=await r.json().catch(function(){return{};});
+    if(!r.ok){
+      status(data.message||"The reader is unavailable right now. Use <b>Type prices</b> instead.",
+             r.status===429||r.status===503?"warn":"err");
+      return;
+    }
+    const raw=Array.isArray(data)?data:(data&&Array.isArray(data.items)?data.items:[]);
+    const seen=appending?normCur(data&&data.currency):normCur(data&&data.currency);
+    const fresh=raw.map(function(o){
+      if(!o||typeof o!=="object")return null;
+      const n=clean(String(o.name||"")),p=parseFloat(o.price);
+      if(!n||!isFinite(p)||p<=0)return null;
+      const up=parseFloat(o.unit_price),us=o.unit_size?parseSize(String(o.unit_size)):null;
+      return{n:n,p:p,size:(o.size?parseSize(String(o.size)):null)||parseSize(n),src:"photo",
+             unitPrice:isFinite(up)&&up>0&&us?up:null,unitSize:us};
+    }).filter(Boolean);
+    if(!fresh.length){
+      status("No prices came off that image. Try a closer, straighter shot of the tags or the offers grid, "+
+             "or use <b>Type prices</b>.","warn");
+      return;
+    }
+    /* several passes make one shop: merge on the normalised name, cheaper price wins */
+    const by={};
+    if(appending)S.basket.forEach(function(it){by[normName(it.n)]=it;});
+    let added=0,merged=0;
+    fresh.forEach(function(it){
+      const k=normName(it.n);
+      if(by[k]){merged++;if(it.p<by[k].p)by[k]=it;}
+      else{by[k]=it;added++;}
+    });
+    const items=Object.keys(by).map(function(k){return by[k];});
+    S.captures=(appending?S.captures:0)+1;
+    /* a sample's currency says nothing about the user's own shop, so confidence
+       is scoped to this source: only an earlier capture of the same run carries over */
+    if(seen){S.cur=seen;S.curKnown=true;$("curField").hidden=true;}
+    else if(!appending||!S.curKnown){
+      S.curKnown=false;$("curField").hidden=false;$("curSel").value=S.cur;}
+    setBudgetFor(S.cur);
+    const place=data&&data.place,lang=data&&data.language;
+    /* only what THIS capture showed counts as evidence; S.cur may still be
+       carrying the example's currency, which proves nothing about the shop */
+    const reg=regionFrom(place,lang,seen||null);
+    /* a fresh upload replaces the cooking outright: if nothing in it names a
+       place, that is evidence of absence, not a reason to keep the example's */
+    S.region=appending?(reg||S.region):reg;
+    S.where=clean(String(place||""))||S.where||"";
+    S.basket=items;S.mode="photo";S.store="your capture";S.valid="";
+    const sized=items.filter(function(i){return i.size||i.unitPrice;}).length;
+    $("mastSub").innerHTML=(S.where?S.where+"<br>":"Read from your uploads<br>")+
+      items.length+" prices · "+sized+" with a size";
+    syncCuisineHint();
+    $("photoBtn").textContent="Add more";
+    $("resetBtn").hidden=false;
+    status("<b>"+items.length+" prices</b> from "+S.captures+" capture"+(S.captures===1?"":"s")+
+           (merged?", "+merged+" already seen":"")+(added&&appending?", "+added+" new":"")+
+           ". Claude read these, so check anything that looks wrong. Every photo price is editable, "+
+           "and changing one marks it as yours.","warn");
+    rebuild();
+  }catch(e){
+    status(ERRCOPY[e&&e.code]||"The photo could not be read. Use <b>Type prices</b> instead.","err");
+    if(e&&(e.code==="not_granted"||e.code==="sampling_disabled"||e.code==="images_unavailable"))
+      $("photoBtn").hidden=true;
+  }finally{
+    $("photoBtn").disabled=false;
+    $("photoInput").value="";
+  }
+}
+
+/* ---------- boot ---------- */
+(function(){
+  const sv=load();
+  ["budget","people","diet","nights","equip","cuisine"].forEach(function(k){
+    if(sv[k]!=null&&sv[k]!=="")$(k).value=sv[k];});
+  $("manualBtn").addEventListener("click",function(){toManual(
+    "No camera to hand? Type what the staples cost where you actually shop: one item per line, "+
+    "<b>name, price</b>. Include the pack size in the name (<b>toor dal 1kg, 177</b>) and the planner "+
+    "can work out cost per serving and how many packs the week needs.");});
+  $("useManual").addEventListener("click",function(){
+    const items=parseManual($("manualTxt").value);
+    if(items.length<3){
+      status("Need at least three lines in the form <b>item, price</b>, one per line.","err");return;}
+    const sized=items.filter(function(i){return i.size;}).length;
+    S.basket=items;S.store="your prices";S.mode="manual";S.valid="";S.captures=0;
+    $("photoBtn").textContent="Upload prices";$("resetBtn").hidden=true;
+    S.curKnown=false;$("curField").hidden=false;$("curSel").value=S.cur;
+    $("manualWrap").hidden=true;
+    $("mastSub").innerHTML="Your own prices<br>"+items.length+" items";
+    status("<b>"+items.length+" prices</b> entered by hand, "+sized+" with a pack size.");
+    rebuild();
+  });
+  $("backLive").addEventListener("click",function(){
+    $("manualWrap").hidden=true;useSample(S.sample||"pune");});
+  $("cuisine").addEventListener("change",function(){
+    save();syncCuisineHint();if(S.basket.length)rebuild();});
+  $("photoBtn").addEventListener("click",function(){$("photoInput").click();});
+  $("resetBtn").addEventListener("click",function(){
+    S.captures=0;S.curKnown=false;S.where="";useSample(S.sample||"pune");});
+  $("curSel").addEventListener("change",function(){
+    S.cur=$("curSel").value;S.curKnown=true;
+    if(!S.region)S.region=regionFrom("","",S.cur);
+    syncCuisineHint();
+    if(S.basket.length)rebuild();});
+  $("photoInput").addEventListener("change",function(e){onFiles(e.target.files);});
+  $("pdfCancel").addEventListener("click",function(){
+    $("pdfWrap").hidden=true;PDFPAGES=[];PDFEXTRA=[];status("PDF set aside.");});
+  $("pdfGo").addEventListener("click",function(){
+    const picked=PDFPAGES.filter(function(r){return r.on;}).map(function(r){return r.p.blob;});
+    $("pdfWrap").hidden=true;
+    readImages(picked.concat(PDFEXTRA));
+    PDFPAGES=[];PDFEXTRA=[];});
+  $("budget").addEventListener("input",function(){S.touchedBudget=true;save();renderTotals();});
+  ["people","diet","nights","equip"].forEach(function(k){
+    $(k).addEventListener("change",function(){save();if(S.basket.length)rebuild();});});
+
+  useSample("pune");
+  syncCuisineHint();
+
+  $("photoBtn").hidden=false;
+})();
+</script>
+
+</body>
+</html>
