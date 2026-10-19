@@ -869,6 +869,12 @@ function rebuild(){
   S.qty={};S.est={};S.done={};S.override={};
   $("cols").hidden=false;
   renderPlan();renderList();renderTotals();
+  /* Any source can yield prices that match no ingredient. Say so rather than
+     showing a tidy zero. */
+  if(S.basket.length&&!Object.keys(S.deals).length)
+    status("Those "+S.basket.length+" prices matched none of the ingredients this planner knows, "+
+           "so nothing below is costed. If it was a flyer, try the Weekly Ad; if a photo, "+
+           "try a shot of the food pages.","warn");
   $("foot").innerHTML=`Prices: ${S.mode==="flyer"?"read off this week's "+S.store+" circular":S.mode==="photo"?"read by Claude from "+S.captures+" capture"+(S.captures===1?"":"s"):S.mode==="manual"?"typed by you":"a saved sample"}`+
     (S.store?` · ${S.store}`:"")+(S.valid?` · valid to ${S.valid}`:"")+
     `. Advertised sale prices change weekly, so always check at the shelf. Recipes are written for ${BASE} servings and scaled; quantities are a cook's estimate, not a nutrition plan.`;
@@ -1125,7 +1131,9 @@ async function findStores(){
       status("No grocery flyers are running near "+postal.toUpperCase()+" this week.","warn");return;}
     FLYERCUR=d.currency||"$";
     $("storeSel").innerHTML=list.map(function(x){
-      return '<option value="'+x.id+'">'+x.merchant+" \u00b7 to "+x.valid_to+"</option>";}).join("");
+      return '<option value="'+x.id+'" data-merchant="'+x.merchant+'">'+
+        x.merchant+" \u00b7 "+x.name+(x.likely_food?"":" (not groceries)")+
+        " \u00b7 to "+x.valid_to+"</option>";}).join("");
     $("storeSelHint").textContent=list.length+" running now";
     $("flyerNote").textContent=list.length+" stores near "+postal.toUpperCase();
     $("useFlyer").hidden=false;
@@ -1137,7 +1145,10 @@ async function findStores(){
 async function useFlyerNow(){
   const sel=$("storeSel"),id=sel.value;
   if(!id||!/^\d+$/.test(id))return;
-  const name=clean(sel.options[sel.selectedIndex].textContent.split("\u00b7")[0]);
+  const opt=sel.options[sel.selectedIndex];
+  const name=clean((opt.getAttribute&&opt.getAttribute("data-merchant"))||
+                   opt.textContent.split("\u00b7")[0]);
+  const label=clean(opt.textContent.split("\u00b7")[1]||"");
   $("useFlyer").disabled=true;
   status('<span class="spin"></span> Reading the '+name+' flyer\u2026');
   try{
@@ -1148,6 +1159,13 @@ async function useFlyerNow(){
     const items=(d.items||[]).map(function(o){
       return{n:o.name,p:o.price,size:parseSize(o.name),src:"live"};});
     if(items.length<3){status("That flyer had almost nothing readable. Try another store.","warn");return;}
+    /* A chain's beauty insert is tagged "Groceries" too. Rather than render a
+       confident week built on nothing, say what the flyer actually was. */
+    const probe=indexBasket(items);
+    if(!Object.keys(probe).length){
+      status("<b>"+name+" \u2014 "+label+"</b> has "+items.length+" prices but no food in it. "+
+             "Pick that chain's <b>Weekly Ad</b> instead.","warn");
+      return;}
     S.basket=items;S.mode="flyer";S.store=name;S.valid="";S.captures=0;
     S.cur=FLYERCUR;S.curKnown=true;S.where=name;S.region=null;
     $("curField").hidden=true;
