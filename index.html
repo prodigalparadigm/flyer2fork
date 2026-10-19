@@ -811,10 +811,15 @@ function renderList(){
   $("listNote").textContent=`${weekly} items · ${priced} priced from the flyer`;
 }
 function sumRows(rows){
-  const b={live:0,photo:0,est:0,own:0};
+  const b={live:0,photo:0,est:0,own:0,eats:0,eatsOf:0,eatsCosted:0};
   let missing=0;
   for(const r of rows){
     const q=S.qty[r.k]==null?(r.packs||1):S.qty[r.k];
+    /* What the week consumes, as opposed to what you hand over at the till.
+       A pack usually outlasts the week, and at a warehouse club it outlasts
+       the month. */
+    b.eatsOf++;
+    if(r.deal&&r.deal.unit!=null){b.eats+=r.need*r.deal.unit;b.eatsCosted++;}
     const p=rowPrice(r);
     if(p==null){missing++;continue;}
     const v=p*q;
@@ -847,8 +852,26 @@ function renderTotals(){
     (w.missing?`<div><span style="color:var(--warn)">Unpriced (${w.missing})</span><span>n/a</span></div>`:"")+
     `<div class="tot"><span>${left>=0?"Under budget by":"Over budget by"}</span>
        <span style="color:${left>=0?"var(--good)":"var(--sale)"}">${money(Math.abs(left))}</span></div>`+
+    (w.eatsCosted>=3&&w.eatsCosted>=w.eatsOf*0.6
+       ? `<div class="tot"><span>What the week eats</span><span>${money(w.eats)}</span></div>` : "")+
     (p.tot?`<div class="tot"><span>Starter pantry, one-time</span><span>${money(p.tot)}</span></div>`:"");
+  /* When the till total dwarfs what the week consumes, the gap is pack size,
+     not extravagance. Say so rather than letting the big number stand alone. */
+  const enough=w.eatsCosted>=3&&w.eatsCosted>=w.eatsOf*0.6;
+  const bulky=enough&&w.eats>0&&w.tot>w.eats*1.6;
+  /* Most North American flyers print no pack sizes, so consumption cannot be
+     computed. For a warehouse club the till total is misleading anyway, and
+     the merchant name is enough to say so. */
+  const WAREHOUSE=/costco|bj'?s|sam'?s club|restaurant depot|wholesale/i;
+  const warehouse=WAREHOUSE.test(S.store||"");
   $("caveat").innerHTML=
+    (warehouse&&!bulky
+       ? `<b>${S.store}</b> sells in bulk. <b>${money(w.tot)}</b> is one pack of each at the till, `+
+         `and a warehouse pack feeds well past seven nights, so treat it as stocking up rather `+
+         `than a weekly food bill.<br><br>`:"")+
+    (bulky?`<b>${money(w.tot)}</b> is what you hand over at the till. The food this week `+
+           `actually eats is about <b>${money(w.eats)}</b>; the rest is pack size, and it `+
+           `keeps. Warehouse packs especially feed well past seven nights.<br><br>`:"")+
     `<b>LIVE</b> is a price read off a shelf or a flyer. <b>PHOTO</b> is one Claude read from your capture, `+
     `so check it. <b>EST</b> is an estimate: marked as such by the source, or typed by you. `+
     `Change a PHOTO price and it becomes yours. The four are never silently blended.<br><br>`+
