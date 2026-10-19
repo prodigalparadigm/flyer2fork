@@ -4,6 +4,7 @@ import { z } from "zod";
 import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
 import { CONFIG } from "./config.mjs";
 import { takeToken, takeDailyBudget } from "./ratelimit.mjs";
+import { stores, flyer, currencyFor, looksCovered } from "./flipp.mjs";
 
 /* ---------- the key ----------
    Read once per cold start from SSM, held in module scope, never logged,
@@ -90,7 +91,63 @@ const json = (status, body, extra = {}, event = null) => ({
 export async function handler(event) {
   const J = (st, b, ex = {}) => json(st, b, ex, event);
   const method = event?.requestContext?.http?.method ?? "POST";
+  const path = event?.rawPath || event?.requestContext?.http?.path || "";
   if (method === "OPTIONS") return J(204, {});
+
+  /* ---- free endpoints: weekly circulars, already structured ----
+     No model call, so these never touch the daily spend cap. They still get a
+     bucket, because an open proxy is rude even when it is cheap. */
+  if (path.endsWith("/stores") || path.endsWith("/flyer")) {
+    if (method !== "GET") return J(405, { error: "method_not_allowed" });
+    const ip = event?.requestContext?.http?.sourceIp || "unknown";
+    try {
+      const b = await takeToken(ip, {
+        prefix: "flyer",
+        perHour: CONFIG.flyerPerIpPerHour,
+        burst: CONFIG.flyerPerIpBurst,
+      });
+      if (!b.ok)
+        return J(429, { error: "rate_limited", message: "Slow down a moment." },
+          { "retry-after": String(b.retryAfter) });
+    } catch (e) {
+      console.error("limiter_unavailable", e?.name);
+      return J(503, { error: "unavailable", message: "Temporarily unavailable." });
+    }
+
+    const q = event?.queryStringParameters || {};
+    try {
+      if (path.endsWith("/stores")) {
+        const postal = String(q.postal || "").trim();
+        if (!postal) return J(400, { error: "no_postal", message: "Give a postal code." });
+        if (!looksCovered(postal))
+          return J(422, {
+            error: "not_covered",
+            message: "Weekly flyers are indexed for the US and Canada only. Upload or type your prices instead.",
+          });
+        const list = await stores(postal);
+        return J(200, { postal, currency: currencyFor(postal), stores: list });
+      }
+      const id = String(q.id || "").trim();
+      if (!/^\d{1,12}$/.test(id)) return J(400, { error: "bad_id", message: "Bad flyer id." });
+      const items = await flyer(id);
+      if (!items.length)
+        return J(422, {
+          error: "unreadable_flyer",
+          message: "That flyer has no machine-readable prices this week. Try another store.",
+        });
+      return J(200, {
+        currency: String(q.currency || "$"),
+        place: String(q.place || ""),
+        language: "English",
+        src: "live",
+        items,
+      });
+    } catch (e) {
+      console.error("flyer_failed", e?.name, String(e?.message || "").slice(0, 60));
+      return J(502, { error: "upstream", message: "The flyer service did not answer. Try again shortly." });
+    }
+  }
+
   if (method !== "POST") return J(405, { error: "method_not_allowed" });
 
   // ---- 1. validate before spending anything ----

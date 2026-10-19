@@ -271,7 +271,8 @@ section{margin-bottom:34px}
     <div class="field" style="justify-content:flex-end">
       <label>&nbsp;</label>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn" id="photoBtn" hidden>Read prices from a photo or PDF</button>
+        <button class="btn" id="findBtn">Find my store</button>
+        <button class="btn ghost" id="photoBtn" hidden>Photo or PDF</button>
         <button class="btn ghost" id="manualBtn">Type prices</button>
         <button class="btn ghost" id="resetBtn" hidden>Start over</button>
         <input type="file" id="photoInput" accept="image/*" multiple hidden>
@@ -280,6 +281,34 @@ section{margin-bottom:34px}
   </div>
 
   <div class="strip" id="strip"><span class="dot"></span><span id="stripTxt">Starting up…</span></div>
+
+  <div id="flyerWrap" hidden>
+    <section style="margin-top:22px">
+      <div class="sec-head"><h2>Flyers running near you</h2>
+        <span class="note" id="flyerNote"></span></div>
+      <div class="banner" id="flyerWhy"></div>
+      <div class="controls" style="margin-top:0;box-shadow:none">
+        <div class="field">
+          <label for="postal">ZIP or postal code</label>
+          <input id="postal" placeholder="12545" autocomplete="postal-code" spellcheck="false">
+          <span class="hint">US and Canada only</span>
+        </div>
+        <div class="field">
+          <label for="storeSel">Store</label>
+          <select id="storeSel"><option>Find stores first</option></select>
+          <span class="hint" id="storeSelHint">Grocery flyers running this week</span>
+        </div>
+        <div class="field" style="justify-content:flex-end">
+          <label>&nbsp;</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn" id="findGo">Find stores</button>
+            <button class="btn" id="useFlyer" hidden>Use this flyer</button>
+            <button class="btn ghost" id="flyerCancel">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
 
   <div id="manualWrap" hidden>
     <section class="manual" style="margin-top:22px">
@@ -840,7 +869,7 @@ function rebuild(){
   S.qty={};S.est={};S.done={};S.override={};
   $("cols").hidden=false;
   renderPlan();renderList();renderTotals();
-  $("foot").innerHTML=`Prices: ${S.mode==="photo"?"read by Claude from "+S.captures+" capture"+(S.captures===1?"":"s"):S.mode==="manual"?"typed by you":"a saved sample"}`+
+  $("foot").innerHTML=`Prices: ${S.mode==="flyer"?"read off this week's "+S.store+" circular":S.mode==="photo"?"read by Claude from "+S.captures+" capture"+(S.captures===1?"":"s"):S.mode==="manual"?"typed by you":"a saved sample"}`+
     (S.store?` · ${S.store}`:"")+(S.valid?` · valid to ${S.valid}`:"")+
     `. Advertised sale prices change weekly, so always check at the shelf. Recipes are written for ${BASE} servings and scaled; quantities are a cook's estimate, not a nutrition plan.`;
 }
@@ -848,7 +877,9 @@ function rebuild(){
 <script>
 "use strict";
 /* ---- your reader endpoint (printed by infra/deploy.sh) ---- */
-const READ_ENDPOINT="https://9gjyrqxeve.execute-api.us-east-1.amazonaws.com/api/read";
+const API_BASE="https://9gjyrqxeve.execute-api.us-east-1.amazonaws.com";
+const READ_ENDPOINT=API_BASE+"/api/read";
+let FLYERCUR="$";
 const IMGLIM={maxCount:6,maxInputBytes:6*1024*1024,
   mediaTypes:["image/jpeg","image/png","image/webp","image/gif"]};
 const blobToB64=b=>new Promise(function(res,rej){
@@ -1077,6 +1108,62 @@ async function onFiles(files){
   }
 }
 
+/* ---------- weekly circulars ----------
+   Free: structured prices straight off the flyer, no model call, so these are
+   LIVE rather than PHOTO. */
+async function findStores(){
+  const postal=clean($("postal").value);
+  if(!postal){status("Enter a ZIP or postal code first.","warn");return;}
+  $("findGo").disabled=true;
+  status('<span class="spin"></span> Looking for flyers near '+postal.toUpperCase()+'\u2026');
+  try{
+    const r=await fetch(API_BASE+"/api/stores?postal="+encodeURIComponent(postal));
+    const d=await r.json().catch(function(){return{};});
+    if(!r.ok){status(d.message||"Could not look that up.",r.status===422?"warn":"err");return;}
+    const list=d.stores||[];
+    if(!list.length){
+      status("No grocery flyers are running near "+postal.toUpperCase()+" this week.","warn");return;}
+    FLYERCUR=d.currency||"$";
+    $("storeSel").innerHTML=list.map(function(x){
+      return '<option value="'+x.id+'">'+x.merchant+" \u00b7 to "+x.valid_to+"</option>";}).join("");
+    $("storeSelHint").textContent=list.length+" running now";
+    $("flyerNote").textContent=list.length+" stores near "+postal.toUpperCase();
+    $("useFlyer").hidden=false;
+    status("<b>"+list.length+" grocery flyers</b> near "+postal.toUpperCase()+". Pick a store.");
+  }catch(e){
+    status("Could not reach the flyer service. Try a photo or type your prices.","err");
+  }finally{$("findGo").disabled=false;}
+}
+async function useFlyerNow(){
+  const sel=$("storeSel"),id=sel.value;
+  if(!id||!/^\d+$/.test(id))return;
+  const name=clean(sel.options[sel.selectedIndex].textContent.split("\u00b7")[0]);
+  $("useFlyer").disabled=true;
+  status('<span class="spin"></span> Reading the '+name+' flyer\u2026');
+  try{
+    const r=await fetch(API_BASE+"/api/flyer?id="+encodeURIComponent(id)+
+      "&currency="+encodeURIComponent(FLYERCUR)+"&place="+encodeURIComponent(name));
+    const d=await r.json().catch(function(){return{};});
+    if(!r.ok){status(d.message||"That flyer could not be read.",r.status===422?"warn":"err");return;}
+    const items=(d.items||[]).map(function(o){
+      return{n:o.name,p:o.price,size:parseSize(o.name),src:"live"};});
+    if(items.length<3){status("That flyer had almost nothing readable. Try another store.","warn");return;}
+    S.basket=items;S.mode="flyer";S.store=name;S.valid="";S.captures=0;
+    S.cur=FLYERCUR;S.curKnown=true;S.where=name;S.region=null;
+    $("curField").hidden=true;
+    setBudgetFor(S.cur);
+    $("flyerWrap").hidden=true;
+    $("resetBtn").hidden=false;
+    $("mastSub").innerHTML=name+"<br>"+items.length+" advertised prices this week";
+    syncCuisineHint();
+    rebuild();
+    status("<b>"+items.length+" advertised prices</b> from the "+name+
+           " flyer. These are <b>LIVE</b>: read straight off the circular, not from a photo.");
+  }catch(e){
+    status("Could not reach the flyer service.","err");
+  }finally{$("useFlyer").disabled=false;}
+}
+
 async function readImages(list){
   if(!READ_ENDPOINT||READ_ENDPOINT.indexOf("REPLACE_WITH")===0){
     status("This copy has no reader endpoint set yet. Use <b>Type prices</b>.","warn");return;}
@@ -1186,6 +1273,18 @@ async function readImages(list){
   $("cuisine").addEventListener("change",function(){
     save();syncCuisineHint();if(S.basket.length)rebuild();});
   $("photoBtn").addEventListener("click",function(){$("photoInput").click();});
+  $("findBtn").addEventListener("click",function(){
+    $("manualWrap").hidden=true;$("flyerWrap").hidden=false;
+    $("flyerWhy").innerHTML="Weekly circulars arrive already structured, so this costs nothing "+
+      "and the prices are exactly as advertised. US and Canada; everywhere else, use a photo.";
+    $("postal").focus();
+    status("Enter a ZIP or postal code to see which shops have a flyer running.");});
+  $("findGo").addEventListener("click",findStores);
+  $("postal").addEventListener("keydown",function(e){
+    if(e.key==="Enter"){e.preventDefault();findStores();}});
+  $("useFlyer").addEventListener("click",useFlyerNow);
+  $("flyerCancel").addEventListener("click",function(){
+    $("flyerWrap").hidden=true;status("Flyer lookup closed.");});
   $("resetBtn").addEventListener("click",function(){
     S.captures=0;S.curKnown=false;S.where="";useSample(S.sample||"pune");});
   $("curSel").addEventListener("change",function(){

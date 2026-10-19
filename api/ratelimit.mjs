@@ -13,12 +13,13 @@ const today = () => new Date().toISOString().slice(0, 10);
 
 /* A token bucket that refills continuously, written as one conditional update
    so two simultaneous requests cannot both spend the last token. */
-export async function takeToken(ip) {
+export async function takeToken(ip, opts = {}) {
   const now = Math.floor(Date.now() / 1000);
-  const rate = CONFIG.perIpPerHour / HOUR;        // tokens per second
-  const cap = CONFIG.perIpBurst;
+  const perHour = opts.perHour ?? CONFIG.perIpPerHour;
+  const rate = perHour / HOUR;                    // tokens per second
+  const cap = opts.burst ?? CONFIG.perIpBurst;
 
-  const key = { pk: "ip#" + idFor(ip) };
+  const key = { pk: (opts.prefix || "ip") + "#" + idFor(ip) };
   const cur = await ddb.send(new GetCommand({ TableName: CONFIG.tableName, Key: key }));
   const prev = cur.Item ?? { tokens: cap, ts: now };
   const refilled = Math.min(cap, prev.tokens + (now - prev.ts) * rate);

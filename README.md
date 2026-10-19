@@ -22,6 +22,16 @@ them as structured data. Nothing is stored, and the images are not retained.
 cannot live in the page, and why rate limits rather than CORS are what protect
 a public endpoint.
 
+## Three ways to get prices in
+
+1. **Find my store** (US and Canada) - weekly circulars arrive already
+   structured, so this costs nothing, needs no model call, and the prices are
+   exactly as advertised.
+2. **Photo or PDF** (anywhere) - photograph a flyer, an app's offers tab, the
+   shelf tags, or a receipt. Claude reads the prices out of it.
+3. **Type prices** (anywhere, no account, no network) - for when the camera is
+   not worth it.
+
 ## Prices carry their provenance
 
 Nothing silently blends an advertised price with a guess:

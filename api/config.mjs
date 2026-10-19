@@ -16,6 +16,10 @@ export const CONFIG = {
   perIpPerHour: 12,
   perIpBurst: 4,
 
+  // --- flyer lookups cost no model tokens, so they get a roomier bucket ---
+  flyerPerIpPerHour: 60,
+  flyerPerIpBurst: 15,
+
   // --- the cap that actually bounds the bill ---
   // Do the arithmetic before raising this. A read of ~3 images costs roughly
   // $0.12 on Opus 5 and ~$0.025 on Haiku 4.5 (rough estimate at list prices).
