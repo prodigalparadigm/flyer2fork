@@ -32,6 +32,20 @@ a public endpoint.
 3. **Type prices** (anywhere, no account, no network) - for when the camera is
    not worth it.
 
+## The recipe library
+
+75 recipes across seven cuisine regions: Indian (25, including South Indian,
+Bengali, Gujarati and Maharashtrian), European (15), East Asian (10), Latin
+American (8), Middle Eastern (7), African (6), and 4 that belong anywhere.
+
+Every recipe carries gram quantities per ingredient for four servings, the
+equipment it needs, its cuisine region and its diet tags, which is what lets
+the planner cost a serving, gate on a pressure cooker, and follow the cuisine
+the prices came from. The vocabulary behind it is 73 ingredients.
+
+The thin combinations are the ones that matter: vegan on a single hob used to
+offer 8 recipes for 7 nights, which is not a choice. It now offers 33.
+
 ## Prices carry their provenance
 
 Nothing silently blends an advertised price with a guess:
