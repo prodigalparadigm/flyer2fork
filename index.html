@@ -996,9 +996,11 @@ function regionFrom(place,language,cur){
   return null;
 }
 function syncCuisineHint(){
-  $("cuisineHint").textContent=$("cuisine").value!=="auto"?"Your choice, not the capture"
-    :S.region&&S.region!=="any"?"Reading as "+REGNAME[S.region]
-    :"Nothing named a place";
+  $("cuisineHint").textContent=
+    $("cuisine").value!=="auto" ? "Your choice, not the capture"
+    : S.region==="any"          ? "No cuisine favoured"
+    : S.region                  ? "Reading as "+REGNAME[S.region]
+    :                             "Nothing named a place";
 }
 const REGNAME={india:"Indian",europe:"European",latin:"Latin American",any:"anything"};
 /* a budget figure means nothing across currencies, so move it with the money */
@@ -1167,7 +1169,7 @@ async function useFlyerNow(){
              "Pick that chain's <b>Weekly Ad</b> instead.","warn");
       return;}
     S.basket=items;S.mode="flyer";S.store=name;S.valid="";S.captures=0;
-    S.cur=FLYERCUR;S.curKnown=true;S.where=name;S.region=null;
+    S.cur=FLYERCUR;S.curKnown=true;S.where=name;S.region="any";
     $("curField").hidden=true;
     setBudgetFor(S.cur);
     $("flyerWrap").hidden=true;
