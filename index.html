@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <style>:root{color-scheme:light dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>Flyer to Fork</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 fill=%27%23F2F3EF%27/%3E%3Ctext y=%2725%27 x=%275%27 font-family=%27Georgia,serif%27 font-size=%2723%27 fill=%27%23BE3A22%27%3EF%3C/text%3E%3C/svg%3E">
+<meta name="description" content="Photograph where grocery prices live, or pick a store near you, and get a week of dinners costed in that shop's own currency.">
+<meta property="og:title" content="Flyer to Fork">
+<meta property="og:description" content="A week of dinners, costed from this week's real grocery prices. Works in any country.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://flyer2fork.com/">
+<meta name="twitter:card" content="summary">
 </head>
 <body>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,7 +20,7 @@
 <style>
 :root{
   --paper:#F2F3EF; --card:#FFFFFF; --sunk:#E9EBE4;
-  --ink:#191C16; --ink2:#5C6157; --ink3:#878D80;
+  --ink:#191C16; --ink2:#5C6157; --ink3:#5C6157;
   --rule:#D8DBD2; --rule2:#C3C8BA;
   --sale:#BE3A22; --sale-bg:#FBEAE5;
   --good:#2F6B3F; --good-bg:#E4EFE5;
@@ -88,6 +95,14 @@ h1,h2,h3{text-wrap:balance;margin:0}
 /* ---- layout ---- */
 .cols{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:26px;align-items:start;margin-top:26px}
 @media(max-width:900px){.cols{grid-template-columns:1fr;gap:22px}}
+/* On a phone the summary sat 4000px down the page, past everything it
+   summarises. Put it first. */
+@media(max-width:600px){
+  .cols{display:flex;flex-direction:column}
+  .cols aside{order:-1}
+  .day-top{grid-template-columns:52px minmax(0,1fr);row-gap:6px}
+  .day-top .hitbadge{grid-column:2;text-align:left}
+}
 section{margin-bottom:34px}
 .sec-head{display:flex;align-items:baseline;gap:12px;border-bottom:1.5px solid var(--ink);
   padding-bottom:7px;margin-bottom:16px;flex-wrap:wrap}
@@ -103,7 +118,7 @@ section{margin-bottom:34px}
 .daytag{font-family:Anton,"Arial Narrow",Impact,sans-serif;font-size:13px;letter-spacing:.09em;
   text-transform:uppercase;color:var(--ink3);border-right:1px solid var(--rule);padding-right:12px;line-height:1.15}
 .daytag b{display:block;color:var(--ink);font-size:19px;letter-spacing:.02em}
-.day h3{font-size:16px;font-weight:700;letter-spacing:-.01em;line-height:1.25}
+.day .h3{display:block;font-size:16px;font-weight:700;letter-spacing:-.01em;line-height:1.25}
 .day .meta{font-size:12px;color:var(--ink2);margin-top:3px}
 .hitbadge{text-align:right;flex:none}
 .hitbadge .n{font-family:Anton,"Arial Narrow",Impact,sans-serif;font-size:21px;color:var(--sale);line-height:1}
@@ -222,17 +237,17 @@ section{margin-bottom:34px}
       <label for="curSel">Currency</label>
       <select id="curSel">
         <option value="$">$ dollar</option>
-        <option value="\u20B9">\u20B9 rupee</option>
-        <option value="\u20AC">\u20AC euro</option>
-        <option value="\u00A3">\u00A3 pound</option>
+        <option value="₹">₹ rupee</option>
+        <option value="€">€ euro</option>
+        <option value="£">£ pound</option>
         <option value="C$">C$ Canadian</option>
         <option value="A$">A$ Australian</option>
         <option value="R">R rand</option>
-        <option value="\u20A6">\u20A6 naira</option>
-        <option value="\u00A5">\u00A5 yen</option>
+        <option value="₦">₦ naira</option>
+        <option value="¥">¥ yen</option>
         <option value="RM">RM ringgit</option>
       </select>
-      <span class="hint">Nothing in the image said</span>
+      <span class="hint" id="curHintSel">Pick the currency your prices are in</span>
     </div>
     <div class="field">
       <label for="budget">Weekly budget</label>
@@ -271,8 +286,7 @@ section{margin-bottom:34px}
       <input id="nights" type="number" min="3" max="7" step="1" value="7" inputmode="numeric">
       <span class="hint">Leftovers fill the rest</span>
     </div>
-    <div class="field" style="justify-content:flex-end">
-      <label>&nbsp;</label>
+    <div class="field" style="grid-column:1/-1">
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn" id="findBtn">Find my store</button>
         <button class="btn ghost" id="photoBtn" hidden>Photo or PDF</button>
@@ -283,7 +297,7 @@ section{margin-bottom:34px}
     </div>
   </div>
 
-  <div class="strip" id="strip"><span class="dot"></span><span id="stripTxt">Starting up…</span></div>
+  <div class="strip" id="strip" role="status" aria-live="polite"><span class="dot"></span><span id="stripTxt">Starting up…</span></div>
 
   <div id="flyerWrap" hidden>
     <section style="margin-top:22px">
@@ -318,6 +332,7 @@ section{margin-bottom:34px}
       <div class="sec-head"><h2>Enter this week's prices</h2>
         <span class="note">One item per line</span></div>
       <div class="banner" id="manualWhy"></div>
+      <label for="manualTxt" class="eyebrow" style="display:block;margin-bottom:6px">Your prices, one per line</label>
       <textarea id="manualTxt" spellcheck="false" placeholder="toor dal 1kg, 145
 basmati rice 5kg, 410
 onion 1kg, 32
@@ -369,7 +384,7 @@ eggs 12, 84"></textarea>
         <div class="caveat" id="caveat"></div>
       </div>
       <div class="panel" id="swapPanel" hidden>
-        <div class="eyebrow" style="margin-bottom:9px">Deepest cuts this week</div>
+        <div class="eyebrow" style="margin-bottom:9px">Cheapest per unit</div>
         <div class="swaps" id="swaps"></div>
       </div>
     </aside>
@@ -400,7 +415,7 @@ const ING={
  beans:{l:"Beans, canned",a:"pantry",u:"g",base:"g",m:/\bbeans?\b|goya|frijol|rajma|chhole/i,x:/green bean|string bean|coffee|vanilla|jelly/i},
  chickpea:{l:"Chickpeas",a:"pantry",u:"g",base:"g",m:/chick ?pea|garbanzo|\bchana\b|chhole/i,x:/salad/i},
  lentil:{l:"Dal or lentils",a:"pantry",u:"g",base:"g",keep:1,m:/lentil|\bdals?\b|\bdaal\b|split pea|toor|tuvar|masoor|moong|urad|arhar/i},
- rice:{l:"Rice",a:"pantry",u:"g",base:"g",keep:1,m:/\brice\b|basmati|jasmine rice|indrayani|sona masoori/i,x:/cake|krispie|pudding|cereal|vinegar|milk|noodle/i},
+ rice:{l:"Rice",a:"pantry",u:"g",base:"g",keep:1,m:/\brice\b|basmati|jasmine rice|indrayani|sona masoori/i,x:/cake|krispie|pudding|cereal|vinegar|milk|noodle|puffs?|chips?|crisps?|snack|booty|cracker|\bbars?\b/i},
  atta:{l:"Atta or flour",a:"pantry",u:"g",base:"g",keep:1,m:/\batta\b|chakki|\bflour\b|maseca|aashirvaad/i,x:/tortilla|besan|corn ?flour/i},
  besan:{l:"Besan",a:"pantry",u:"g",base:"g",keep:1,m:/\bbesan\b|gram flour|chickpea flour/i},
  poha:{l:"Poha",a:"pantry",u:"g",base:"g",keep:1,m:/\bpoha\b|flattened rice|beaten rice/i},
@@ -409,7 +424,7 @@ const ING={
  oil:{l:"Cooking oil",a:"pantry",u:"g",base:"g",keep:1,m:/\boil\b/i,x:/motor|change|sardine/i},
  masala:{l:"Spice kit",a:"pantry",u:"g",base:"g",keep:1,m:/masala|turmeric|haldi|chilli powder|jeera|cumin|coriander powder|garam|everest|catch\b/i,x:/\btea\b|chai/i},
  ggpaste:{l:"Ginger-garlic paste",a:"pantry",u:"g",base:"g",keep:1,m:/ginger[- ]garlic|adrak lehsun/i},
- bread:{l:"Bread",a:"pantry",u:"ct",base:"ct",m:/\bbread\b|roll|bagel|pita|\bnaan\b/i,x:/crumb|pudding|stuffing/i},
+ bread:{l:"Bread",a:"pantry",u:"ct",base:"ct",m:/\bbread\b|\brolls?\b|\bbagels?\b|\bpita\b|\bnaan\b/i,x:/crumb|pudding|stuffing|\bbag\b|reusable|rolling/i},
  tortilla:{l:"Tortillas",a:"pantry",u:"ct",base:"ct",m:/tortilla|taco shell/i,x:/chip/i},
  tuna:{l:"Canned tuna",a:"pantry",u:"g",base:"g",m:/\btuna\b|sardine/i,x:/steak|fresh|sushi/i},
  tomcan:{l:"Tinned tomatoes",a:"pantry",u:"g",base:"g",m:/(crushed|diced|stewed|plum|canned) tomato|tomato (sauce|paste|puree)|passata/i},
@@ -485,31 +500,31 @@ function parseSize(name){
    eq: what it needs. "pan" runs anywhere. */
 const BASE=4;
 const RECIPES=[
-{id:"masoordal",n:"Masoor dal + rice",c:"Pune week one",t:25,eq:"cooker",reg:"india",tags:["veg","vegan","gf"],
+{id:"masoordal",n:"Masoor dal + rice",c:"Maharashtrian",t:25,eq:"cooker",reg:"india",tags:["veg","vegan","gf"],
  core:[["lentil",300],["onion",150],["tomato",200],["ggpaste",20],["masala",15],["oil",30],["rice",370]],
  pantry:["salt","mustard seed"],
  steps:["Rinse the masoor until the water runs clear. Cooker with turmeric, salt and 3x water.","Three whistles, then off the heat. Let it drop by itself.","Tadka: hot oil, mustard, ginger-garlic, onion to gold, tomato to collapse, masala in last.","Pour the tadka into the dal, not the other way round. Rice alongside."]},
-{id:"bhurji",n:"Egg bhurji + roti",c:"Pune week one",t:25,eq:"pan",reg:"india",tags:["veg","gf"],
+{id:"bhurji",n:"Egg bhurji + roti",c:"Maharashtrian",t:25,eq:"pan",reg:"india",tags:["veg","gf"],
  core:[["eggs",6],["onion",200],["tomato",150],["chilli",15],["cilantro",20],["atta",300],["oil",30]],
  pantry:["salt","turmeric","kanda lasun masala"],
  steps:["Dough first: atta, water, a little oil. Knead 5 min, rest it while you cook.","Onion and chilli in hot oil until the onion goes translucent, then tomato until it breaks.","Beat the eggs with salt and turmeric, in they go. Keep the spatula moving: bhurji is scrambled, not an omelette.","Coriander off the heat. Roll and cook the rotis as you eat."]},
-{id:"poha",n:"Kanda-batata poha",c:"Pune week one",t:15,eq:"pan",reg:"india",tags:["veg","vegan","gf"],
+{id:"poha",n:"Kanda-batata poha",c:"Maharashtrian",t:15,eq:"pan",reg:"india",tags:["veg","vegan","gf"],
  core:[["poha",250],["potato",250],["onion",150],["chilli",10],["lime",1],["oil",30]],
  pantry:["mustard seed","turmeric","salt","sugar","peanuts"],
  steps:["Rinse the poha in a sieve, twice, then leave it to drain. It should crumble, never clump.","Mustard seeds in hot oil until they pop, then peanuts, chilli, onion, diced potato.","Lid on 6 min until the potato is tender.","Fold the poha through with turmeric, salt and a pinch of sugar. Lime at the table."]},
-{id:"chickencurry",n:"One-pot chicken curry + rice",c:"Pune week one",t:35,eq:"cooker",reg:"india",tags:["gf"],
+{id:"chickencurry",n:"One-pot chicken curry + rice",c:"Maharashtrian",t:35,eq:"cooker",reg:"india",tags:["gf"],
  core:[["chicken",700],["onion",300],["tomato",250],["ggpaste",30],["masala",20],["oil",40],["rice",370]],
  pantry:["salt","turmeric","kanda lasun masala"],
  steps:["Brown the onion properly in the cooker, 8 minutes, until it is actually brown. This is the dish.","Ginger-garlic, then tomato, then the masalas. Cook until oil separates at the edges.","Chicken in, coat it, one cup water, lid on. Two whistles.","Rest 10 min before opening. Rice on the side."]},
-{id:"khichdi",n:"Moong dal khichdi",c:"Pune week one",t:20,eq:"cooker",reg:"india",tags:["veg","gf"],
+{id:"khichdi",n:"Moong dal khichdi",c:"Maharashtrian",t:20,eq:"cooker",reg:"india",tags:["veg","gf"],
  core:[["rice",250],["lentil",200],["carrot",150],["peas",150],["ggpaste",15],["oil",25]],
  pantry:["turmeric","cumin","salt","ghee"],
  steps:["Rinse rice and moong dal together.","Cumin in hot oil, ginger-garlic, then whatever sabzi was cheapest, diced small.","Grains in, turmeric, salt, 4x water. Three whistles.","It should pour, not stand up. Loosen with hot water and finish with ghee."]},
-{id:"chilla",n:"Besan chilla + dahi",c:"Pune week one",t:15,eq:"pan",reg:"india",tags:["veg","gf"],
+{id:"chilla",n:"Besan chilla + dahi",c:"Maharashtrian",t:15,eq:"pan",reg:"india",tags:["veg","gf"],
  core:[["besan",300],["onion",150],["chilli",10],["cilantro",20],["curd",300],["oil",30]],
  pantry:["salt","turmeric","ajwain"],
  steps:["Whisk besan with water to a thin pouring batter, thinner than you think. Rest 10 min.","Stir in finely chopped onion, chilli, coriander, salt, turmeric.","Ladle onto a hot oiled tawa, spread thin, oil round the edge. Flip when the top looks dry.","Dahi on the side. No cooker needed, which is the point on a tired night."]},
-{id:"matarpaneer",n:"Matar paneer",c:"Pune week one",t:30,eq:"pan",reg:"india",tags:["veg","gf"],
+{id:"matarpaneer",n:"Matar paneer",c:"Maharashtrian",t:30,eq:"pan",reg:"india",tags:["veg","gf"],
  core:[["paneer",400],["peas",250],["onion",200],["tomato",250],["ggpaste",20],["masala",15],["oil",30],["rice",370]],
  pantry:["salt","turmeric","garam masala"],
  steps:["Cube the paneer and fry briefly to a pale gold. Lift it out: overcooked paneer goes rubbery.","Onion to brown, ginger-garlic, tomato until it is a paste and the oil shows.","Peas and half a cup of water, 5 min.","Paneer back in for the last 2 minutes only. Garam masala off the heat."]},
@@ -792,7 +807,14 @@ const RECIPES=[
 const $=id=>document.getElementById(id);
 const S={basket:[],deals:{},store:"",valid:"",mode:"sample",cur:"$",plan:[],rows:[],
          est:{},qty:{},done:{},override:{},captures:0,curKnown:false};
-const money=n=>S.cur+(Math.round(n*100)/100).toFixed(2);
+const LOCALE={"₹":"en-IN","$":"en-US","C$":"en-CA","A$":"en-AU",
+  "€":"de-DE","£":"en-GB","¥":"ja-JP"};
+const money=n=>{
+  const v=Math.round(n*100)/100;
+  try{ return S.cur+v.toLocaleString(LOCALE[S.cur]||"en-US",
+    {minimumFractionDigits:2,maximumFractionDigits:2}); }
+  catch(e){ return S.cur+v.toFixed(2); }
+};
 const clean=s=>(s||"").replace(/\s+/g," ").trim();
 
 function save(){try{localStorage.setItem("f2f",JSON.stringify({
@@ -808,13 +830,34 @@ function fmtQty(q,base){
 }
 
 /* ---------- matching & costing ---------- */
+/* A US circular often prints one price over a list of unrelated products
+   ("green peppers, navel oranges or pears, yakisoba, ..."). That price belongs
+   to whichever one you pick, so it cannot be attributed to any ingredient. */
+const COMBO=/(?:,[^,]+){3,}/;
+/* "$1.69 /lb" is a rate, not what a pack costs. */
+/* Snack food borrows the names of real ingredients: "rice & corn puffs" is
+   neither rice nor corn. Excluding per ingredient just moves the mismatch. */
+const SNACK=/\bpuffs?\b|\bcrisps?\b|\bchips\b|booty|pretzel|popcorn|\bcandy\b|gummy|\bsoda\b|\bcola\b|energy drink|cereal bar/i;
+const PERLB=/\bper\s*lb\b|\/\s*lb\b|\blbs?\.(?!\s*\d)|\bper\s*pound\b/i;
+
 function indexBasket(basket){
   const deals={};
   for(const it of basket){
+    if(COMBO.test(it.n))continue;          // mix-and-match offer: skip entirely
+    if(SNACK.test(it.n))continue;          // snack borrowing an ingredient name
+    /* One offer must not satisfy two different ingredients, so each item goes
+       to its single best match: the one whose pattern matched the most text. */
+    let bestK=null,bestLen=-1;
     for(const k in ING){
       const g=ING[k];
-      if(!g.m.test(it.n))continue;
+      const m=g.m.exec(it.n);
+      if(!m)continue;
       if(g.x&&g.x.test(it.n))continue;
+      if(m[0].length>bestLen){bestLen=m[0].length;bestK=k;}
+    }
+    if(!bestK)continue;
+    for(const k of [bestK]){
+      const g=ING[k];
       /* a tile listing several products ("A • B • C") has one price and many
          sizes - its pack size means nothing, so cost nothing from it */
       const combo=/[\u2022|]/.test(it.n);
@@ -822,11 +865,13 @@ function indexBasket(basket){
       if(!size&&!combo){const s=parseSize(it.n);if(s&&s.base===g.base)size=s;}
       if(combo)size=null;
       /* a shelf tag's own unit price is better evidence than dividing by pack size */
-      let unit=null;
+      let unit=null,perlb=false;
       if(it.unitPrice>0&&it.unitSize&&it.unitSize.base===g.base)unit=it.unitPrice/it.unitSize.q;
+      /* a price quoted per pound IS a unit price, once converted */
+      if(unit==null&&!size&&g.base==="g"&&PERLB.test(it.n)){unit=it.p/453.6;perlb=true;}
       if(unit==null&&size)unit=it.p/size.q;
       (deals[k]=deals[k]||[]).push({n:it.n,p:it.p,size:size,src:it.src||"live",
-        tagged:!!it.unitPrice,unit:unit});
+        tagged:!!it.unitPrice,perlb:perlb,unit:unit});
     }
   }
   for(const k in deals){
@@ -910,10 +955,10 @@ function activeRegion(){
    live  = read off a shelf or a flyer      photo = read by Claude from a capture
    est   = a market estimate, or your own figure */
 const PROV={live:{t:"LIVE",c:"var(--sale)"},photo:{t:"PHOTO",c:"var(--photo)"},
-            est:{t:"EST",c:"var(--warn)"}};
+            est:{t:"EST",c:"var(--warn)"},own:{t:"EST",c:"var(--warn)"}};
 function rowSrc(r){
   if(S.override[r.k]!=null)return "est";
-  return r.deal?(r.deal.src||"live"):"est";
+  return r.deal?(r.deal.src||"live"):"own";
 }
 function rowPrice(r){
   if(S.override[r.k]!=null)return S.override[r.k];
@@ -933,15 +978,20 @@ function renderPlan(){
     const chips=r.core.map(([k,q])=>{
       const g=ING[k],dl=S.deals[k];
       const amt=fmtQty(q*people/BASE,g.base);
-      return dl?`<span class="chip on">${g.l} ${amt}<span class="pr">${dl[0].unit!=null?money(q*people/BASE*dl[0].unit):money(dl[0].p)}</span></span>`
-               :`<span class="chip">${g.l} ${amt}</span>`;}).join("");
+      if(!dl)return `<span class="chip">${g.l} ${amt}</span>`;
+      /* with a unit price this is the cost of what the dish uses; without one
+         it is a whole pack, and saying so stops it being misread */
+      return dl[0].unit!=null
+        ? `<span class="chip on">${g.l} ${amt}<span class="pr">${money(q*people/BASE*dl[0].unit)}</span></span>`
+        : `<span class="chip on">${g.l} ${amt}<span class="pr">pack ${money(dl[0].p)}</span></span>`;
+      }).join("");
     card.innerHTML=
       `<button class="day-top" aria-expanded="false">
          <span class="daytag">${DAYNM[d.getDay()].slice(0,3)}<b>${d.getDate()}</b></span>
-         <span><h3>${r.n}</h3><span class="meta">${r.c} · ${r.t} min · ${r.eq==="cooker"?"pressure cooker":r.eq==="oven"?"oven":"hob only"} · cooks ${people} dinners + ${people} lunches</span></span>
+         <span><span class="h3">${r.n}</span><span class="meta">${r.c} · ${r.t} min · ${r.eq==="cooker"?"pressure cooker":r.eq==="oven"?"oven":"hob only"} · cooks ${people} dinners + ${people} lunches</span></span>
          <span class="hitbadge">${c.per!=null
-            ?`<span class="n">${money(c.per)}</span><span class="l">per serving${c.full?"":" · part"}</span>`
-            :`<span class="n">${r.core.filter(c=>S.deals[c[0]]).length}/${r.core.length}</span><span class="l">on sale</span>`}</span>
+            ?`<span class="n">${money(c.per)}</span><span class="l">per serving${c.full?"":", most of it"}</span>`
+            :`<span class="n">${c.costed}/${c.of}</span><span class="l">ingredients costed</span>`}</span>
        </button>
        <div class="day-body" hidden>
          <h4>For ${people} eaters</h4><div class="chips">${chips}</div>
@@ -956,13 +1006,16 @@ function renderPlan(){
     wrap.appendChild(card);
   });
   const costed=S.plan.map(recipeCost).filter(c=>c.per!=null);
-  const avg=costed.length?costed.reduce((a,c)=>a+c.per,0)/costed.length:null;
+  /* an average over two of seven nights is not an average of the week */
+  const avg=costed.length>=Math.ceil(S.plan.length*0.6)
+    ? costed.reduce((a,c)=>a+c.per,0)/costed.length : null;
   /* diet and kit can leave a cuisine with almost nothing; say so rather than
      quietly serving something else */
   const reg=activeRegion(),want=reg&&reg!=="any";
   const onreg=want?S.plan.filter(r=>r.reg===reg).length:0;
   $("planNote").textContent=`${S.plan.length} nights`+
-    (avg!=null?` · ${money(avg)} a serving on average`:"")+
+    (avg!=null?` · ${money(avg)} a serving on average`
+      :costed.length?` · only ${costed.length} of ${S.plan.length} nights can be costed`:"")+
     (want&&onreg<Math.ceil(S.plan.length/2)
       ? ` · your diet and kit leave few ${REGNAME[reg]} options, so the rest come from elsewhere`
       : ` · each cook makes dinner + next-day lunch`);
@@ -1032,7 +1085,10 @@ function renderList(){
     $("pantryNote").textContent=`${keep.length} bulk staples · bought once · lasts weeks`;
   }
   const weekly=S.rows.filter(r=>!r.keep).length;
-  $("listNote").textContent=`${weekly} items · ${priced} priced from the flyer`;
+  const fromSrc=S.rows.filter(r=>!r.keep&&r.deal&&(r.deal.src==="live"||r.deal.src==="photo")).length;
+  const est=priced-fromSrc;
+  $("listNote").textContent=`${weekly} items · ${fromSrc} priced from the source`+
+    (est?`, ${est} estimated`:"");
 }
 function sumRows(rows){
   const b={live:0,photo:0,est:0,own:0,eats:0,eatsOf:0,eatsCosted:0};
@@ -1050,6 +1106,7 @@ function sumRows(rows){
     if(S.override[r.k]!=null)b.own+=v;
     else if(!r.deal)b.own+=v;
     else if(r.deal.src==="photo")b.photo+=v;
+    else if(r.deal.src==="own")b.own+=v;
     else if(r.deal.src==="est")b.est+=v;
     else b.live+=v;
   }
@@ -1062,7 +1119,7 @@ function renderTotals(){
   $("curHint").textContent=S.cur==="\u20B9"?"Indian rupees":S.cur==="C$"?"Canadian dollars":
     S.cur==="$"?"US dollars":"Local currency";
   $("total").textContent=money(w.tot);
-  $("total").className="bigfig "+(b&&w.tot>b?"over":"under");
+  $("total").className="bigfig "+(b>0&&w.tot>b?"over":b>0?"under":"");
   const pct=v=>b?Math.min(100,v/b*100):0;
   $("mf").style.width=pct(w.live+w.photo)+"%";
   $("me").style.width=Math.max(0,Math.min(100-pct(w.live+w.photo),pct(w.est+w.own)))+"%";
@@ -1074,10 +1131,12 @@ function renderTotals(){
     line("EST, market estimate",w.est,"var(--warn)")+
     line("EST, your figures",w.own,"var(--warn)")+
     (w.missing?`<div><span style="color:var(--warn)">Unpriced (${w.missing})</span><span>n/a</span></div>`:"")+
-    `<div class="tot"><span>${left>=0?"Under budget by":"Over budget by"}</span>
-       <span style="color:${left>=0?"var(--good)":"var(--sale)"}">${money(Math.abs(left))}</span></div>`+
+    (b>0
+      ? `<div class="tot"><span>${left>=0?"Under budget by":"Over budget by"}${w.missing?", before "+w.missing+" unpriced":""}</span>
+           <span style="color:${left>=0?"var(--good)":"var(--sale)"}">${money(Math.abs(left))}</span></div>`
+      : `<div class="tot"><span>No budget set</span><span>—</span></div>`)+
     (w.eatsCosted>=3&&w.eatsCosted>=w.eatsOf*0.6
-       ? `<div class="tot"><span>What the week eats</span><span>${money(w.eats)}</span></div>` : "")+
+       ? `<div class="tot"><span>Fresh food the week uses</span><span>${money(w.eats)}</span></div>` : "")+
     (p.tot?`<div class="tot"><span>Starter pantry, one-time</span><span>${money(p.tot)}</span></div>`:"");
   /* When the till total dwarfs what the week consumes, the gap is pack size,
      not extravagance. Say so rather than letting the big number stand alone. */
@@ -1094,23 +1153,44 @@ function renderTotals(){
          `and a warehouse pack feeds well past seven nights, so treat it as stocking up rather `+
          `than a weekly food bill.<br><br>`:"")+
     (bulky?`<b>${money(w.tot)}</b> is what you hand over at the till. The food this week `+
-           `actually eats is about <b>${money(w.eats)}</b>; the rest is pack size, and it `+
+           `uses in fresh food is about <b>${money(w.eats)}</b>, pantry staples aside; the rest is pack size, and it `+
            `keeps. Warehouse packs especially feed well past seven nights.<br><br>`:"")+
     `<b>LIVE</b> is a price read off a shelf or a flyer. <b>PHOTO</b> is one Claude read from your capture, `+
     `so check it. <b>EST</b> is an estimate: marked as such by the source, or typed by you. `+
-    `Change a PHOTO price and it becomes yours. The four are never silently blended.<br><br>`+
+    `Change a PHOTO price and it becomes yours. These are never silently blended.<br><br>`+
+    `A night shows a price per serving only when at least three quarters of its `+
+    `ingredients came from a pack whose size is known. The rest show how many `+
+    `were costed.<br><br>`+
     (S.rows.some(r=>r.deal&&r.deal.size)
       ? `Pack counts are worked out from the pack size on the offer, so the quantity column starts at what the week actually needs.`
       : `No pack sizes were found, so quantities start at one of each. Set them to what you will really buy.`)+
     ` A sale-price estimate, not a checkout total.`;
-  const cheap=Object.keys(S.deals).filter(k=>S.deals[k][0].unit!=null)
+  /* this was never a discount list: there is no regular price to compare to.
+     It is the cheapest per unit, and a typed estimate does not belong in it. */
+  const cheap=Object.keys(S.deals)
+    .filter(k=>S.deals[k][0].unit!=null&&S.deals[k][0].src!=="est")
     .map(k=>({k:k,d:S.deals[k][0]})).sort((a,b)=>a.d.unit-b.d.unit).slice(0,6);
   $("swapPanel").hidden=!cheap.length;
   if(cheap.length)$("swaps").innerHTML=cheap.map(c=>
-    `<div class="swap"><b>${money(c.d.unit*1000)}</b><span>${ING[c.k].l} per ${c.d.size&&c.d.size.base==="ct"?"1000":"kg/l"}, <span style="color:var(--ink3)">${c.d.n.toLowerCase()}</span></span></div>`).join("");
+    `<div class="swap"><b>${money(c.d.unit*(ING[c.k].base==="ct"?1:1000))}</b><span>${ING[c.k].l} ${ING[c.k].base==="ct"?"each":"per kg"}, <span style="color:var(--ink3)">${c.d.n.toLowerCase()}</span></span></div>`).join("");
+}
+/* The plan silently clamped these, so the field could say 50 while the week
+   was built for 12. Write back what was actually used. */
+function clampInputs(){
+  const fix=(id,lo,hi,dflt)=>{
+    const el=$(id); let v=parseFloat(el.value);
+    if(!isFinite(v))v=dflt;
+    v=Math.min(hi,Math.max(lo,Math.round(v)));
+    el.value=String(v); return v;
+  };
+  fix("people",1,12,2); fix("nights",3,7,7);
+  const b=$("budget"); let bv=parseFloat(b.value);
+  if(!isFinite(bv)||bv<0){bv=0;b.value="0";}
+  return bv;
 }
 function rebuild(){
   S.deals=indexBasket(S.basket);
+  clampInputs();
   S.plan=buildPlan($("diet").value,Math.max(3,Math.min(7,+$("nights").value||7)),$("equip").value,activeRegion());
   S.rows=buildRows(S.plan,Math.max(1,+$("people").value||2));
   S.qty={};S.est={};S.done={};S.override={};
@@ -1133,7 +1213,7 @@ function rebuild(){
 const API_BASE="https://9gjyrqxeve.execute-api.us-east-1.amazonaws.com";
 const READ_ENDPOINT=API_BASE+"/api/read";
 let FLYERCUR="$";
-const IMGLIM={maxCount:6,maxInputBytes:6*1024*1024,
+const IMGLIM={maxCount:6,
   mediaTypes:["image/jpeg","image/png","image/webp","image/gif"]};
 /* Cost and latency both scale with pixels, and past about 1568px on the long
    edge the model gains nothing. A phone photo is often 4000px wide, which is
@@ -1168,8 +1248,8 @@ const blobToB64=b=>new Promise(function(res,rej){
 
 const SAMPLES={
   pune:{items:function(){return SAMPLE_PUNE;},store:"JioMart, Pune 411001",valid:"2026-10-18",
-    cur:"₹",budget:700,region:"india",
-    sub:"Example · JioMart, Pune 411001<br>shelf prices read 18 Oct 2026",
+    cur:"₹",budget:700,region:"india",valid:"",
+    sub:"Example · JioMart, Pune 411001<br>a real shelf run, 18 Oct 2026",
     strip:"This is a <b>worked example</b>: a real Pune shelf run, 20 live JioMart prices plus 7 marked EST. "+
           "Upload your own and it is replaced, cooking and currency included."},
   us:{items:function(){return SAMPLE_US;},store:"C Town, New York",valid:"2026-10-22",
@@ -1196,49 +1276,29 @@ function toManual(why){
   $("manualTxt").focus();
 }
 function parseManual(txt){
-  const out=[];
-  for(const line of txt.split("\n")){
-    const l=clean(line);
+  const out=[],skipped=[],seen={};
+  const lines=txt.split("\n");
+  for(let n=0;n<lines.length;n++){
+    const l=clean(lines[n]);
     if(!l)continue;
-    const m=l.match(/^(.*?)[,;:\t]\s*([\d.,]+)\s*$/)||l.match(/^(.+?)\s+([\d.]+)\s*$/);
-    if(!m)continue;
+    /* a typed "$1.79" or "Rs 145" must not silently vanish */
+    const cleaned=l.replace(/(?:[$₹€£¥₦]|\b(?:rs|inr|usd|eur|gbp|cad|aud)\b\.?)\s*/gi,"");
+    const m=cleaned.match(/^(.*?)[,;:\t]\s*([\d.,]+)\s*$/)||cleaned.match(/^(.+?)\s+([\d.]+)\s*$/);
+    if(!m){skipped.push(n+1);continue;}
     const p=parseFloat(m[2].replace(/,(?=\d{3}\b)/g,"").replace(/,/g,"."));
-    const n=clean(m[1]);
-    if(!n||!isFinite(p)||p<=0)continue;
-    out.push({n:n,p:p,size:parseSize(n),src:"est"});
+    const nm=clean(m[1]);
+    if(!nm||!isFinite(p)||p<=0){skipped.push(n+1);continue;}
+    const key=nm.toLowerCase();
+    if(seen[key]){seen[key].p=Math.min(seen[key].p,p);continue;}   // dedupe, keep cheaper
+    const item={n:nm,p:p,size:parseSize(nm),src:"own"};
+    seen[key]=item;out.push(item);
   }
+  out.skipped=skipped;
   return out;
 }
 
+
 /* ---------- the flyer reader ---------- */
-const READ_PROMPT=
-"These images show where grocery prices live. They may be any of:\n"+
-"  (a) a printed weekly circular or a store's weekly-ad page;\n"+
-"  (b) a grocery or delivery app's offers tab or listing screen (JioMart, Blinkit, Zepto, Instamart and the like);\n"+
-"  (c) SHELF PRICE TAGS photographed in the aisle;\n"+
-"  (d) a till RECEIPT from a recent shop.\n\n"+
-"Extract every FOOD or GROCERY item that shows a price.\n\n"+
-"Reply with only a JSON object:\n"+
-'{"currency": string, "place": string, "language": string, "items": [{"name": string, "price": number, "size": string, "unit_price": number, "unit_size": string}]}\n\n'+
-"- currency: the symbol or code actually VISIBLE in the images, such as ₹ or $ or € or £ or \"Rs.\". "+
-"Empty string if nothing in the image shows one. Do not infer it from the language or the products.\n"+
-"- place: the country, city or shop name if the images show one, such as \"Pune, India\", \"Malta\", \"Lidl Ireland\". "+
-"Empty string if nothing identifies a place. Do not guess it from the currency alone.\n"+
-"- language: the main language of the text, named in English, such as \"English\", \"Maltese\", \"Hindi\". "+
-"Empty string if unclear.\n"+
-"- name: the product as printed, brand included, with no price text in it.\n"+
-"- price: what one pack costs, as a plain number, no currency symbol and no thousands separator. "+
-"Where both a struck-through MRP and a lower offer price are shown, take the LOWER one.\n"+
-"- size: the pack size exactly as printed, such as \"1 kg\", \"500 g\", \"800 ml\", \"12 ct\". Empty string if none is shown.\n"+
-"- unit_price and unit_size: ONLY when the image prints a price per unit, as shelf tags often do "+
-"(\"$0.12/oz\", \"₹85.00 per 100 g\"). Then unit_price is 0.12 and unit_size is \"1 oz\". "+
-"Omit both when no unit price is printed. Never calculate one yourself.\n\n"+
-"On a RECEIPT: the prices are what was actually paid. Skip tax lines, subtotals, totals, change, "+
-"loyalty and discount rows, and anything that is not food.\n"+
-"On SHELF TAGS: one object per tag.\n\n"+
-"Skip non-food items, delivery and membership banners, and anything whose price you cannot read with confidence. "+
-"Never invent a price, a pack size or a unit price. Leave the item out instead.\n\n"+
-'Example: {"currency":"₹","place":"Pune, India","language":"English","items":[{"name":"Good Life Toor Dal","price":177,"size":"1 kg"}]}';
 
 const CURMAP={"rs":"₹","rs.":"₹","inr":"₹","₹":"₹","usd":"$","$":"$","us$":"$",
  "eur":"€","€":"€","gbp":"£","£":"£","cad":"C$","c$":"C$","aud":"A$","a$":"A$",
@@ -1412,7 +1472,7 @@ async function findStores(){
       status("No grocery flyers are running near "+postal.toUpperCase()+" this week.","warn");return;}
     FLYERCUR=d.currency||"$";
     $("storeSel").innerHTML=list.map(function(x){
-      return '<option value="'+x.id+'" data-merchant="'+x.merchant+'">'+
+      return '<option value="'+x.id+'" data-merchant="'+x.merchant.replace(/Wegman's/,"Wegmans")+'">'+
         x.merchant+" \u00b7 "+x.name+(x.likely_food?"":" (not groceries)")+
         " \u00b7 to "+x.valid_to+"</option>";}).join("");
     $("storeSelHint").textContent=list.length+" running now";
@@ -1480,7 +1540,12 @@ async function readImages(list){
       headers:{"content-type":"application/json"},body:JSON.stringify(payload)});
     const data=await r.json().catch(function(){return{};});
     if(!r.ok){
-      status(data.message||"The reader is unavailable right now. Use <b>Type prices</b> instead.",
+      /* 4xx messages are about what the user sent, so they are useful. 5xx are
+         about our server, and "no API key configured" is not their problem. */
+      const mine=r.status>=400&&r.status<500&&data.message;
+      status(mine?data.message
+             :"Photo reading is unavailable right now. Use <b>Type prices</b>, "+
+              "or <b>Find my store</b> if you are in the US or Canada.",
              r.status===429||r.status===503?"warn":"err");
       return;
     }
@@ -1557,11 +1622,18 @@ async function readImages(list){
     "can work out cost per serving and how many packs the week needs.");});
   $("useManual").addEventListener("click",function(){
     const items=parseManual($("manualTxt").value);
+    const sk=items.skipped||[];
     if(items.length<3){
-      status("Need at least three lines in the form <b>item, price</b>, one per line.","err");return;}
+      $("manualWhy").innerHTML="Needs at least three priced lines. "+
+        (sk.length?"Could not read line"+(sk.length>1?"s":"")+" "+sk.join(", ")+".":"")+
+        " Each line is <b>name, price</b>.";
+      status("Needs at least three lines in the form <b>item, price</b>.","err");return;}
+    if(sk.length)
+      $("manualWhy").innerHTML="Read "+items.length+" lines. Skipped line"+
+        (sk.length>1?"s":"")+" "+sk.join(", ")+": no price found there.";
     const sized=items.filter(function(i){return i.size;}).length;
     S.basket=items;S.store="your prices";S.mode="manual";S.valid="";S.captures=0;
-    $("photoBtn").textContent="Upload prices";$("resetBtn").hidden=true;
+    $("photoBtn").textContent="Upload prices";$("resetBtn").hidden=false;
     S.curKnown=false;$("curField").hidden=false;$("curSel").value=S.cur;
     $("manualWrap").hidden=true;
     $("mastSub").innerHTML="Your own prices<br>"+items.length+" items";
