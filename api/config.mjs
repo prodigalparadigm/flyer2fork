@@ -23,9 +23,10 @@ export const CONFIG = {
   // --- the cap that actually bounds the bill ---
   // Do the arithmetic before raising this. A read of ~3 images costs roughly
   // $0.12 on Opus 5 and ~$0.025 on Haiku 4.5 (rough estimate at list prices).
-  // So 40/day is about $5/day worst case on Opus, ~$1 on Haiku. Raise it only
-  // once you have seen real traffic.
-  globalReadsPerDay: 40,
+  // At 300/day that is roughly $15-20 on a normal day and up to $35 if every
+  // read is six images. Measured: 3.5c for a simple flyer, 6.6c for a dense
+  // circular. Raised to 300 on 2026-10-20 ahead of a public post.
+  globalReadsPerDay: 300,
 
   // --- where things live ---
   ssmKeyParam: process.env.SSM_KEY_PARAM || "/flyer-to-fork/anthropic-api-key",
