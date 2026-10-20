@@ -150,11 +150,13 @@ export async function handler(event) {
             message: "Weekly flyers are indexed for the US and Canada only. Upload or type your prices instead.",
           });
         const list = await stores(postal);
+        note("stores_ok", { stores: list.length });
         return J(200, { postal, currency: currencyFor(postal), stores: list });
       }
       const id = String(q.id || "").trim();
       if (!/^\d{1,12}$/.test(id)) return J(400, { error: "bad_id", message: "Bad flyer id." });
       const items = await flyer(id);
+      note("flyer_ok", { items: items.length });
       if (!items.length)
         return J(422, {
           error: "unreadable_flyer",
