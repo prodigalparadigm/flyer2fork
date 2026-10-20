@@ -44,15 +44,30 @@ const PROMPT = [
   "  (c) SHELF PRICE TAGS photographed in the aisle;",
   "  (d) a till RECEIPT from a recent shop.",
   "",
-  "Extract every FOOD or GROCERY item that shows a price.",
+  "Extract the items a COOK would buy, with their prices.",
+  "",
+  "A full supermarket circular carries hundreds of offers and most are useless",
+  "for planning meals. Include ingredients someone cooks with: fresh produce,",
+  "meat and fish, dairy and eggs, grains, pulses, pasta, rice, flour, tinned",
+  "and frozen vegetables, oils and staples.",
+  "Skip household goods, cleaning, pet food, health and beauty, alcohol, soft",
+  "drinks, confectionery, crisps and snacks, ready meals, gift cards and any",
+  "offer that is not an ingredient.",
+  "Return at most 40 items. If the page holds more, keep the ones most useful",
+  "for cooking a week of meals and leave the rest out.",
   "",
   "currency: the symbol or code actually VISIBLE in the images. Empty string if none is shown.",
   "  Do not infer it from the language or the products.",
   "place: the country, city or shop name if the images show one. Empty string if nothing identifies a place.",
   "language: the main language of the text, named in English. Empty string if unclear.",
   "name: the product as printed, brand included, with no price text in it.",
-  "price: what one pack costs, as a plain number. Where both a struck-through",
-  "  price and a lower offer price are shown, take the LOWER one.",
+  "price: what ONE of the item costs, as a plain number. Where a struck-through",
+  "  price and a lower offer price are both shown, take the LOWER one.",
+  "  MULTI-BUY: an offer reading \"3 for $5\" or \"2/$4\" is a total for several.",
+  "  Divide it out and give the per-item price (5 for 3 items is 1.67), never the",
+  "  total. Put the wording as printed in size, for example \"3 for $5\".",
+  "  PERCENTAGE OFFERS: an offer showing only \"30% OFF\" with no money amount has",
+  "  no price. Leave the item out rather than giving it a price of 0.",
   "size: the pack size exactly as printed, such as \"1 kg\". Empty string if none is shown.",
   "unit_price / unit_size: ONLY when the image prints a price per unit, as shelf",
   "  tags often do (\"$0.12/oz\"). Then unit_price is 0.12 and unit_size is \"1 oz\".",
@@ -218,12 +233,22 @@ export async function handler(event) {
   }
 
   try {
-    const client = new Anthropic({ apiKey: key });
+    /* A key scoped to one workspace needs no header. A key that is not scoped
+       to one requires anthropic-workspace-id on every request, so support both
+       rather than forcing a particular choice at key-creation time. */
+    const ws = process.env.ANTHROPIC_WORKSPACE_ID;
+    const client = new Anthropic({
+      apiKey: key,
+      ...(ws ? { defaultHeaders: { "anthropic-workspace-id": ws } } : {}),
+    });
     const res = await client.messages.parse({
       model: CONFIG.model,
       max_tokens: CONFIG.maxTokens,
       messages: [{ role: "user", content: [...blocks, { type: "text", text: PROMPT }] }],
-      output_config: { format: zodOutputFormat(Reading) },
+      /* Reading prices off an image is perception, not reasoning, and the
+         gateway gives us 30 seconds. A dense circular at the default effort
+         took 48s and was thrown away by the timeout. */
+      output_config: { format: zodOutputFormat(Reading), effort: "low" },
     });
 
     if (res.stop_reason === "refusal")
