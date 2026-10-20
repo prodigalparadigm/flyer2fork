@@ -106,6 +106,12 @@ const json = (status, body, extra = {}, event = null) => ({
 });
 
 export async function handler(event) {
+  const started = Date.now();
+  /* One line per request so tomorrow is evidence rather than guesswork.
+     Counts, sizes and timings only: no prices, no product names, no image
+     data, no addresses. Nothing here identifies a person or their shopping. */
+  const note = (what, extra = {}) =>
+    console.log("STAT " + JSON.stringify({ what, ms: Date.now() - started, ...extra }));
   const J = (st, b, ex = {}) => json(st, b, ex, event);
   const method = event?.requestContext?.http?.method ?? "POST";
   const path = event?.rawPath || event?.requestContext?.http?.path || "";
@@ -123,9 +129,11 @@ export async function handler(event) {
         perHour: CONFIG.flyerPerIpPerHour,
         burst: CONFIG.flyerPerIpBurst,
       });
-      if (!b.ok)
+      if (!b.ok) {
+        note("flyer_rate_limited");
         return J(429, { error: "rate_limited", message: "Slow down a moment." },
           { "retry-after": String(b.retryAfter) });
+      }
     } catch (e) {
       console.error("limiter_unavailable", e?.name);
       return J(503, { error: "unavailable", message: "Temporarily unavailable." });
@@ -204,17 +212,22 @@ export async function handler(event) {
   try {
     const bucket = await takeToken(ip);
     if (!bucket.ok)
-      return J(429, {
-        error: "rate_limited",
-        message: "That is a lot of reads in a short time. Try again shortly.",
-      }, { "retry-after": String(bucket.retryAfter) });
+      {
+        note("read_rate_limited");
+        return J(429, {
+          error: "rate_limited",
+          message: "That is a lot of reads in a short time. Try again shortly.",
+        }, { "retry-after": String(bucket.retryAfter) });
+      }
 
     const budget = await takeDailyBudget();
-    if (!budget.ok)
+    if (!budget.ok) {
+      note("daily_cap_hit", { used: budget.used, cap: budget.cap });
       return J(503, {
         error: "daily_cap",
         message: "This has hit its reading limit for today. Type your prices instead, or try tomorrow.",
       });
+    }
   } catch (e) {
     // A limiter that is down must not become an open door.
     console.error("limiter_unavailable", e.name);
@@ -278,6 +291,19 @@ export async function handler(event) {
     if (!res.parsed_output)
       return J(502, { error: "unparsed", message: "The reply came back unreadable. Try a tighter crop." });
 
+    const out = res.parsed_output;
+    note("read_ok", {
+      images: blocks.length,
+      kb: Math.round(total / 1024),
+      items: out.items?.length ?? 0,
+      sized: out.items?.filter((i) => i.size).length ?? 0,
+      multibuy: out.items?.filter((i) => MULTI.test(String(i.size || ""))).length ?? 0,
+      unit_priced: out.items?.filter((i) => i.unit_price).length ?? 0,
+      got_place: Boolean(out.place),
+      got_currency: Boolean(out.currency),
+      in_tok: res.usage?.input_tokens,
+      out_tok: res.usage?.output_tokens,
+    });
     return J(200, {
       ...res.parsed_output,
       usage: { input: res.usage?.input_tokens, output: res.usage?.output_tokens },
@@ -285,6 +311,7 @@ export async function handler(event) {
   } catch (e) {
     // Log the shape of the failure, never the key and never the whole error.
     console.error("read_failed", e?.name, e?.status ?? "");
+    note("read_failed", { kind: e?.name, status: e?.status ?? null });
     if (e instanceof Anthropic.RateLimitError)
       return J(429, { error: "upstream_rate_limited", message: "Busy right now. Try again shortly." });
     if (e instanceof Anthropic.AuthenticationError)
