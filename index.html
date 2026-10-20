@@ -284,11 +284,11 @@ section{margin-bottom:34px}
     <div class="field">
       <label for="nights">Nights to plan</label>
       <input id="nights" type="number" min="3" max="7" step="1" value="7" inputmode="numeric">
-      <span class="hint">Leftovers fill the rest</span>
+      <span class="hint">Lunches come from the leftovers</span>
     </div>
     <div class="field" style="grid-column:1/-1">
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn" id="findBtn">Find my store</button>
+        <button class="btn" id="findBtn">Find my store (US &amp; Canada)</button>
         <button class="btn ghost" id="photoBtn" hidden>Photo or PDF</button>
         <button class="btn ghost" id="manualBtn">Type prices</button>
         <button class="btn ghost" id="resetBtn" hidden>Start over</button>
@@ -928,8 +928,12 @@ function buildPlan(diet,nights,equip,region){
   }
   return picked;
 }
+/* A cook feeds everyone dinner and everyone lunch the next day, so it makes
+   2 x eaters servings. The cards always said so; the shopping list used to buy
+   half of it. Per-serving is unaffected: it is recipe cost / BASE either way. */
+const servingsFor=people=>2*people;
 function buildRows(plan,people){
-  const scale=people/BASE,agg={};
+  const scale=servingsFor(people)/BASE,agg={};
   for(const r of plan)for(const[k,q]of r.core){
     if(!agg[k])agg[k]={k:k,need:0,from:[]};
     agg[k].need+=q*scale;agg[k].from.push(r.n);
@@ -977,12 +981,12 @@ function renderPlan(){
     const card=document.createElement("article");card.className="day";
     const chips=r.core.map(([k,q])=>{
       const g=ING[k],dl=S.deals[k];
-      const amt=fmtQty(q*people/BASE,g.base);
+      const amt=fmtQty(q*servingsFor(people)/BASE,g.base);
       if(!dl)return `<span class="chip">${g.l} ${amt}</span>`;
       /* with a unit price this is the cost of what the dish uses; without one
          it is a whole pack, and saying so stops it being misread */
       return dl[0].unit!=null
-        ? `<span class="chip on">${g.l} ${amt}<span class="pr">${money(q*people/BASE*dl[0].unit)}</span></span>`
+        ? `<span class="chip on">${g.l} ${amt}<span class="pr">${money(q*servingsFor(people)/BASE*dl[0].unit)}</span></span>`
         : `<span class="chip on">${g.l} ${amt}<span class="pr">pack ${money(dl[0].p)}</span></span>`;
       }).join("");
     card.innerHTML=
@@ -1137,7 +1141,10 @@ function renderTotals(){
       : `<div class="tot"><span>No budget set</span><span>—</span></div>`)+
     (w.eatsCosted>=3&&w.eatsCosted>=w.eatsOf*0.6
        ? `<div class="tot"><span>Fresh food the week uses</span><span>${money(w.eats)}</span></div>` : "")+
-    (p.tot?`<div class="tot"><span>Starter pantry, one-time</span><span>${money(p.tot)}</span></div>`:"");
+    (p.tot?`<div class="tot"><span>Starter pantry, one-time</span><span>${money(p.tot)}</span></div>`:"")+
+    /* Someone starting with an empty cupboard pays both in week one, and a
+       cheerful "under budget" that omits the pantry is not the truth. */
+    (p.tot?`<div class="tot"><span>First week, with the pantry</span><span>${money(w.tot+p.tot)}</span></div>`:"");
   /* When the till total dwarfs what the week consumes, the gap is pack size,
      not extravagance. Say so rather than letting the big number stand alone. */
   const enough=w.eatsCosted>=3&&w.eatsCosted>=w.eatsOf*0.6;
