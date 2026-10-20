@@ -99,7 +99,6 @@ h1,h2,h3{text-wrap:balance;margin:0}
    summarises. Put it first. */
 @media(max-width:600px){
   .cols{display:flex;flex-direction:column}
-  .cols aside{order:-1}
   .day-top{grid-template-columns:52px minmax(0,1fr);row-gap:6px}
   .day-top .hitbadge{grid-column:2;text-align:left}
 }
@@ -150,8 +149,9 @@ section{margin-bottom:34px}
 .row.done .nm,.row.done .src{text-decoration:line-through;opacity:.45}
 .row .nm{min-width:0}
 .row .nm b{font-weight:600;display:block;line-height:1.3}
-.row .src{font-size:11.5px;color:var(--ink3);line-height:1.35;margin-top:1px;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .src{font-size:11.5px;color:var(--ink3);line-height:1.4;margin-top:2px}
+.row .src b{display:inline}
+@media(max-width:600px){.row .src{white-space:normal;overflow-wrap:anywhere}}
 .row .qty{font:inherit;font-size:13px;text-align:center;padding:4px;border:1px solid var(--rule2);
   border-radius:2px;background:var(--paper);color:var(--ink);font-variant-numeric:tabular-nums;width:100%}
 .price{text-align:right;font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;
@@ -196,6 +196,14 @@ section{margin-bottom:34px}
   background:var(--photo);color:#fff;font-size:11px;line-height:18px;text-align:center;display:none}
 .pg.on .tick{display:block}
 .pg:focus-visible{outline:2px solid var(--sale);outline-offset:1px}
+/* instead of hoisting the whole rail, keep one line of answer in view */
+.mini{display:none}
+@media(max-width:600px){
+  .mini{display:flex;align-items:baseline;gap:10px;position:sticky;
+    top:env(safe-area-inset-top,0px);z-index:15;margin:0 -16px 12px;padding:9px 16px;
+    background:var(--card);border-bottom:1px solid var(--rule);font-size:13px}
+  .mini b{font-family:Anton,"Arial Narrow",Impact,sans-serif;font-size:20px;letter-spacing:.01em}
+}
 .manual textarea{width:100%;min-height:150px;font-family:"IBM Plex Mono",monospace;font-size:13px;
   padding:11px;border:1px solid var(--rule2);border-radius:2px;background:var(--paper);
   color:var(--ink);resize:vertical;line-height:1.6}
@@ -360,6 +368,7 @@ eggs 12, 84"></textarea>
     </section>
   </div>
 
+  <div class="mini" id="miniBar" hidden></div>
   <div class="cols" id="cols" hidden>
     <main>
       <section id="planSec">
@@ -382,9 +391,10 @@ eggs 12, 84"></textarea>
         <div class="meter"><i class="f" id="mf" style="width:0"></i><i class="e" id="me" style="width:0"></i></div>
         <div class="ledger" id="ledger"></div>
         <div class="caveat" id="caveat"></div>
+      <div class="banner" id="swapTip" hidden style="margin:11px 0 0"></div>
       </div>
       <div class="panel" id="swapPanel" hidden>
-        <div class="eyebrow" style="margin-bottom:9px">Cheapest per unit</div>
+        <div class="eyebrow" style="margin-bottom:9px">Cheapest per unit in this flyer</div>
         <div class="swaps" id="swaps"></div>
       </div>
     </aside>
@@ -500,11 +510,11 @@ function parseSize(name){
    eq: what it needs. "pan" runs anywhere. */
 const BASE=4;
 const RECIPES=[
-{id:"masoordal",n:"Masoor dal + rice",c:"Maharashtrian",t:25,eq:"cooker",reg:"india",tags:["veg","vegan","gf"],
+{id:"masoordal",n:"Masoor dal + rice",c:"North Indian",t:25,eq:"cooker",reg:"india",tags:["veg","vegan","gf"],
  core:[["lentil",300],["onion",150],["tomato",200],["ggpaste",20],["masala",15],["oil",30],["rice",370]],
  pantry:["salt","mustard seed"],
  steps:["Rinse the masoor until the water runs clear. Cooker with turmeric, salt and 3x water.","Three whistles, then off the heat. Let it drop by itself.","Tadka: hot oil, mustard, ginger-garlic, onion to gold, tomato to collapse, masala in last.","Pour the tadka into the dal, not the other way round. Rice alongside."]},
-{id:"bhurji",n:"Egg bhurji + roti",c:"Maharashtrian",t:25,eq:"pan",reg:"india",tags:["veg","gf"],
+{id:"bhurji",n:"Egg bhurji + roti",c:"North Indian",t:25,eq:"pan",reg:"india",tags:["veg","gf"],
  core:[["eggs",6],["onion",200],["tomato",150],["chilli",15],["cilantro",20],["atta",300],["oil",30]],
  pantry:["salt","turmeric","kanda lasun masala"],
  steps:["Dough first: atta, water, a little oil. Knead 5 min, rest it while you cook.","Onion and chilli in hot oil until the onion goes translucent, then tomato until it breaks.","Beat the eggs with salt and turmeric, in they go. Keep the spatula moving: bhurji is scrambled, not an omelette.","Coriander off the heat. Roll and cook the rotis as you eat."]},
@@ -512,19 +522,19 @@ const RECIPES=[
  core:[["poha",250],["potato",250],["onion",150],["chilli",10],["lime",1],["oil",30]],
  pantry:["mustard seed","turmeric","salt","sugar","peanuts"],
  steps:["Rinse the poha in a sieve, twice, then leave it to drain. It should crumble, never clump.","Mustard seeds in hot oil until they pop, then peanuts, chilli, onion, diced potato.","Lid on 6 min until the potato is tender.","Fold the poha through with turmeric, salt and a pinch of sugar. Lime at the table."]},
-{id:"chickencurry",n:"One-pot chicken curry + rice",c:"Maharashtrian",t:35,eq:"cooker",reg:"india",tags:["gf"],
+{id:"chickencurry",n:"One-pot chicken curry + rice",c:"North Indian",t:35,eq:"cooker",reg:"india",tags:["gf"],
  core:[["chicken",700],["onion",300],["tomato",250],["ggpaste",30],["masala",20],["oil",40],["rice",370]],
  pantry:["salt","turmeric","kanda lasun masala"],
  steps:["Brown the onion properly in the cooker, 8 minutes, until it is actually brown. This is the dish.","Ginger-garlic, then tomato, then the masalas. Cook until oil separates at the edges.","Chicken in, coat it, one cup water, lid on. Two whistles.","Rest 10 min before opening. Rice on the side."]},
-{id:"khichdi",n:"Moong dal khichdi",c:"Maharashtrian",t:20,eq:"cooker",reg:"india",tags:["veg","gf"],
+{id:"khichdi",n:"Moong dal khichdi",c:"One pot",t:20,eq:"cooker",reg:"india",tags:["veg","gf"],
  core:[["rice",250],["lentil",200],["carrot",150],["peas",150],["ggpaste",15],["oil",25]],
  pantry:["turmeric","cumin","salt","ghee"],
  steps:["Rinse rice and moong dal together.","Cumin in hot oil, ginger-garlic, then whatever sabzi was cheapest, diced small.","Grains in, turmeric, salt, 4x water. Three whistles.","It should pour, not stand up. Loosen with hot water and finish with ghee."]},
-{id:"chilla",n:"Besan chilla + dahi",c:"Maharashtrian",t:15,eq:"pan",reg:"india",tags:["veg","gf"],
+{id:"chilla",n:"Besan chilla + dahi",c:"North Indian",t:15,eq:"pan",reg:"india",tags:["veg","gf"],
  core:[["besan",300],["onion",150],["chilli",10],["cilantro",20],["curd",300],["oil",30]],
  pantry:["salt","turmeric","ajwain"],
  steps:["Whisk besan with water to a thin pouring batter, thinner than you think. Rest 10 min.","Stir in finely chopped onion, chilli, coriander, salt, turmeric.","Ladle onto a hot oiled tawa, spread thin, oil round the edge. Flip when the top looks dry.","Dahi on the side. No cooker needed, which is the point on a tired night."]},
-{id:"matarpaneer",n:"Matar paneer",c:"Maharashtrian",t:30,eq:"pan",reg:"india",tags:["veg","gf"],
+{id:"matarpaneer",n:"Matar paneer",c:"North Indian",t:30,eq:"pan",reg:"india",tags:["veg","gf"],
  core:[["paneer",400],["peas",250],["onion",200],["tomato",250],["ggpaste",20],["masala",15],["oil",30],["rice",370]],
  pantry:["salt","turmeric","garam masala"],
  steps:["Cube the paneer and fry briefly to a pale gold. Lift it out: overcooked paneer goes rubbery.","Onion to brown, ginger-garlic, tomato until it is a paste and the oil shows.","Peas and half a cup of water, 5 min.","Paneer back in for the last 2 minutes only. Garam masala off the heat."]},
@@ -611,7 +621,7 @@ const RECIPES=[
 {id:"choleaalu",n:"Chole with potatoes",c:"North Indian",t:35,eq:"pan",reg:"india",tags:["veg", "vegan", "gf"],
  core:[["chickpea",800],["potato",600],["onion",250],["tomato",300],["masala",15],["oil",30]],
  pantry:["cumin","amchur","salt"],
- steps:["Cube the potato small so it cooks in the time the chickpeas need.","Onion to deep gold, then tomato until it is a paste.","Chickpeas, potato and a cup of water, lid on, 15 minutes.","Finish with amchur or a squeeze of lemon: it needs the sourness."]},
+ steps:["Cube the potato small so it cooks in the time the chickpeas need.","Onion to deep gold, then tomato until it is a paste.","Two tins of chickpeas, drained, with the potato and a cup of water, lid on, 15 minutes.","Finish with amchur or a squeeze of lemon: it needs the sourness."]},
 {id:"bainganbharta",n:"Baingan bharta",c:"North Indian",t:40,eq:"oven",reg:"india",tags:["veg", "vegan", "gf"],
  core:[["eggplant",900],["onion",250],["tomato",300],["ggpaste",20],["masala",12],["oil",35]],
  pantry:["cumin","chilli powder","salt"],
@@ -885,8 +895,8 @@ function indexBasket(basket){
 function recipeCost(r){
   let cost=0,costed=0;
   for(const[k,q]of r.core){
-    const d=S.deals[k];
-    if(d&&d[0].unit!=null){cost+=q*d[0].unit;costed++;}
+    const u=(S.alloc&&S.alloc[k]!=null)?S.alloc[k]:(S.deals[k]&&S.deals[k][0].unit);
+    if(u!=null){cost+=q*u;costed++;}
   }
   return{cost:cost,costed:costed,of:r.core.length,
          per:costed?cost/BASE:null,full:costed===r.core.length};
@@ -932,6 +942,21 @@ function buildPlan(diet,nights,equip,region){
    2 x eaters servings. The cards always said so; the shopping list used to buy
    half of it. Per-serving is unaffected: it is recipe cost / BASE either way. */
 const servingsFor=people=>2*people;
+/* A flyer line can carry a price and no pack size ("frozen green peas, 38").
+   Dropping it understates the night while the chip still shows a price, which
+   reads as a contradiction. Spread the pack across the nights that use it. */
+function allocate(rows){
+  const a={};
+  for(const r of rows){
+    if(!r.deal)continue;
+    if(r.deal.unit!=null){a[r.k]=r.deal.unit;continue;}
+    if(r.need>0){
+      const packs=S.qty[r.k]==null?(r.packs||1):S.qty[r.k];
+      a[r.k]=(r.deal.p*packs)/r.need;       // cost per base unit, pack spread over the week
+    }
+  }
+  return a;
+}
 function buildRows(plan,people){
   const scale=servingsFor(people)/BASE,agg={};
   for(const r of plan)for(const[k,q]of r.core){
@@ -1009,7 +1034,8 @@ function renderPlan(){
       btn.setAttribute("aria-expanded",String(o));});
     wrap.appendChild(card);
   });
-  const costed=S.plan.map(recipeCost).filter(c=>c.per!=null);
+  const all=S.plan.map(recipeCost);
+  const costed=all.filter(c=>c.per!=null);
   /* an average over two of seven nights is not an average of the week */
   const avg=costed.length>=Math.ceil(S.plan.length*0.6)
     ? costed.reduce((a,c)=>a+c.per,0)/costed.length : null;
@@ -1018,7 +1044,7 @@ function renderPlan(){
   const reg=activeRegion(),want=reg&&reg!=="any";
   const onreg=want?S.plan.filter(r=>r.reg===reg).length:0;
   $("planNote").textContent=`${S.plan.length} nights`+
-    (avg!=null?` · ${money(avg)} a serving on average`
+    (avg!=null?` · ${money(avg)} a serving on average${all.every(c=>c.full)?"":", counting priced ingredients only"}`
       :costed.length?` · only ${costed.length} of ${S.plan.length} nights can be costed`:"")+
     (want&&onreg<Math.ceil(S.plan.length/2)
       ? ` · your diet and kit leave few ${REGNAME[reg]} options, so the rest come from elsewhere`
@@ -1030,7 +1056,7 @@ function lineRow(r){
   const el=document.createElement("div");
   el.className="row"+(S.done[r.k]?" done":"");
   const what=r.deal
-    ? `${r.deal.n.toLowerCase()}${r.deal.size?" ("+fmtQty(r.deal.size.q,r.base)+" pack)":""}${r.deal.tagged?", unit price off the tag":""}`
+    ? `${r.deal.n.toLowerCase()}${r.deal.size&&!new RegExp(fmtQty(r.deal.size.q,r.base).replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"i").test(r.deal.n)?" ("+fmtQty(r.deal.size.q,r.base)+" pack)":""}${r.deal.tagged?", unit price off the tag":""}`
     : "not in this list";
   const srcHtml=`${fmtQty(r.need,r.base)} needed \u00b7 `+
     `<b id="tag-${r.k}" style="color:${pv.c}">${pv.t}</b> ${what}`;
@@ -1089,10 +1115,14 @@ function renderList(){
     $("pantryNote").textContent=`${keep.length} bulk staples · bought once · lasts weeks`;
   }
   const weekly=S.rows.filter(r=>!r.keep).length;
-  const fromSrc=S.rows.filter(r=>!r.keep&&r.deal&&(r.deal.src==="live"||r.deal.src==="photo")).length;
-  const est=priced-fromSrc;
-  $("listNote").textContent=`${weekly} items · ${fromSrc} priced from the source`+
-    (est?`, ${est} estimated`:"");
+  /* count shop rows only: the pantry loop shares the `priced` counter, which
+     is how "10 items, 3 priced, 11 estimated" happened */
+  const wkRows=S.rows.filter(r=>!r.keep);
+  const fromSrc=wkRows.filter(r=>r.deal&&(r.deal.src==="live"||r.deal.src==="photo")).length;
+  const estRows=wkRows.filter(r=>rowPrice(r)!=null).length-fromSrc;
+  const none=wkRows.length-fromSrc-estRows;
+  $("listNote").textContent=`${wkRows.length} items · ${fromSrc} from the source`+
+    (estRows?`, ${estRows} estimated`:"")+(none?`, ${none} unpriced`:"");
 }
 function sumRows(rows){
   const b={live:0,photo:0,est:0,own:0,eats:0,eatsOf:0,eatsCosted:0};
@@ -1117,6 +1147,47 @@ function sumRows(rows){
   b.missing=missing;b.tot=b.live+b.photo+b.est+b.own;
   return b;
 }
+/* The budget was decoration: the planner never traded a night down to land
+   under it, and the page never said how you might. Rather than silently
+   reshuffling someone's week, name the one swap that would do it and let them
+   decide. */
+function swapSuggestion(over){
+  if(!(over>0)||!S.plan.length)return null;
+  const people=Math.max(1,+S.peopleNow||+$("people").value||2);
+  /* Estimating from recipe cost is wrong: the bill is packs, and a cheaper
+     recipe can need a whole extra pack. Simulate the basket instead, so the
+     saving quoted is the saving that happens. */
+  const simTotal=(plan)=>{
+    const rows=buildRows(plan,people).filter(r=>!r.keep);
+    let t=0;
+    for(const r of rows){
+      const packs=r.packs||1;
+      if(r.deal)t+=r.deal.p*packs;
+    }
+    return t;
+  };
+  const now=simTotal(S.plan);
+  const inPlan=new Set(S.plan.map(r=>r.id));
+  const ok=EQOK[$("equip").value]||EQOK.all,reg=activeRegion();
+  const pool=RECIPES.filter(r=>!inPlan.has(r.id)&&dietOK(r,$("diet").value)&&ok.indexOf(r.eq)>=0
+    &&(!reg||reg==="any"||r.reg===reg||r.reg==="any")).slice(0,30);
+  let best=null;
+  for(let i=0;i<S.plan.length;i++){
+    for(const cand of pool){
+      const trial=S.plan.slice();trial[i]=cand;
+      const saved=now-simTotal(trial);
+      if(saved<=0)continue;
+      const c={i:i,out:S.plan[i],in:cand,saved:saved};
+      if(!best){best=c;continue;}
+      /* the smallest swap that clears the gap, else the biggest available */
+      const clears=saved>=over,bestClears=best.saved>=over;
+      if(clears&&!bestClears)best=c;
+      else if(clears===bestClears&&(clears?saved<best.saved:saved>best.saved))best=c;
+    }
+  }
+  return best&&best.saved>=over*0.5?best:null;
+}
+const DAYN=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 function renderTotals(){
   const w=sumRows(S.rows.filter(r=>!r.keep)),p=sumRows(S.rows.filter(r=>r.keep));
   const b=+$("budget").value||0;
@@ -1136,7 +1207,7 @@ function renderTotals(){
     line("EST, your figures",w.own,"var(--warn)")+
     (w.missing?`<div><span style="color:var(--warn)">Unpriced (${w.missing})</span><span>n/a</span></div>`:"")+
     (b>0
-      ? `<div class="tot"><span>${left>=0?"Under budget by":"Over budget by"}${w.missing?", before "+w.missing+" unpriced":""}</span>
+      ? `<div class="tot"><span>${left>=0?"Under budget by":"Over budget by"}${w.missing?` (${w.missing} still unpriced)`:""}</span>
            <span style="color:${left>=0?"var(--good)":"var(--sale)"}">${money(Math.abs(left))}</span></div>`
       : `<div class="tot"><span>No budget set</span><span>—</span></div>`)+
     (w.eatsCosted>=3&&w.eatsCosted>=w.eatsOf*0.6
@@ -1154,6 +1225,25 @@ function renderTotals(){
      the merchant name is enough to say so. */
   const WAREHOUSE=/costco|bj'?s|sam'?s club|restaurant depot|wholesale/i;
   const warehouse=WAREHOUSE.test(S.store||"");
+  /* one concrete, declinable suggestion when the plan overshoots */
+  const sug=left<0?swapSuggestion(-left):null;
+  $("swapTip").hidden=!sug;
+  if(sug){
+    const d=new Date();d.setDate(d.getDate()+sug.i);
+    $("swapTip").innerHTML=`Over by ${money(-left)}. Swapping <b>${DAYN[d.getDay()]}</b>'s `+
+      `${sug.out.n} for <b>${sug.in.n}</b> would save about ${money(sug.saved)}.`+
+      ` <button class="btn ghost" id="swapGo" style="margin-left:8px;padding:4px 10px">Do it</button>`;
+    $("swapGo").addEventListener("click",function(){
+      S.plan=S.plan.slice();S.plan[sug.i]=sug.in;
+      S.rows=buildRows(S.plan,Math.max(1,+$("people").value||2));
+      S.alloc=allocate(S.rows);S.qty={};S.est={};S.done={};S.override={};
+      renderPlan();renderList();renderTotals();
+      status(`Swapped in <b>${sug.in.n}</b>. Change any control to rebuild the week from scratch.`);
+    });
+  }
+  $("miniBar").hidden=false;
+  $("miniBar").innerHTML=`<b style="color:${b>0&&w.tot>b?"var(--sale)":"var(--good)"}">${money(w.tot)}</b>`+
+    `<span style="color:var(--ink2)">${b>0?(left>=0?"under budget":"over budget")+" · "+money(Math.abs(left)):"this week’s shop"}</span>`;
   $("caveat").innerHTML=
     (warehouse&&!bulky
        ? `<b>${S.store}</b> sells in bulk. <b>${money(w.tot)}</b> is one pack of each at the till, `+
@@ -1200,6 +1290,7 @@ function rebuild(){
   clampInputs();
   S.plan=buildPlan($("diet").value,Math.max(3,Math.min(7,+$("nights").value||7)),$("equip").value,activeRegion());
   S.rows=buildRows(S.plan,Math.max(1,+$("people").value||2));
+  S.alloc=allocate(S.rows);
   S.qty={};S.est={};S.done={};S.override={};
   $("cols").hidden=false;
   renderPlan();renderList();renderTotals();
@@ -1256,12 +1347,12 @@ const blobToB64=b=>new Promise(function(res,rej){
 const SAMPLES={
   pune:{items:function(){return SAMPLE_PUNE;},store:"JioMart, Pune 411001",valid:"2026-10-18",
     cur:"₹",budget:700,region:"india",valid:"",
-    sub:"Example · JioMart, Pune 411001<br>a real shelf run, 18 Oct 2026",
+    sub:"Example · JioMart, Pune 411001 <br> a real shelf run, 18 Oct 2026",
     strip:"This is a <b>worked example</b>: a real Pune shelf run, 20 live JioMart prices plus 7 marked EST. "+
           "Upload your own and it is replaced, cooking and currency included."},
   us:{items:function(){return SAMPLE_US;},store:"C Town, New York",valid:"2026-10-22",
     cur:"$",budget:75,region:"any",
-    sub:"Example · C Town, New York<br>flyer week of 16–22 Oct 2026",
+    sub:"Example · C Town, New York <br> flyer week of 16–22 Oct 2026",
     strip:"This is a <b>worked example</b>: a real New York circular, 313 advertised prices."}
 };
 function useSample(which){
@@ -1520,7 +1611,7 @@ async function useFlyerNow(){
     setBudgetFor(S.cur);
     $("flyerWrap").hidden=true;
     $("resetBtn").hidden=false;
-    $("mastSub").innerHTML=name+"<br>"+items.length+" advertised prices this week";
+    $("mastSub").innerHTML=name+" <br> "+items.length+" advertised prices this week";
     syncCuisineHint();
     rebuild();
     status("<b>"+items.length+" advertised prices</b> from the "+name+
