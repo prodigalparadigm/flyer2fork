@@ -1587,8 +1587,12 @@ async function readImages(list){
     const reg=regionFrom(place,lang,seen||null);
     /* a fresh upload replaces the cooking outright: if nothing in it names a
        place, that is evidence of absence, not a reason to keep the example's */
-    S.region=appending?(reg||S.region):reg;
     S.where=clean(String(place||""))||S.where||"";
+    /* "we know where this is and it implies no particular cooking" is a
+       different statement from "nothing told us where", and the hint must not
+       claim the second when the masthead is displaying the first. */
+    const placed=reg||(S.where?"any":null);
+    S.region=appending?(placed||S.region):placed;
     S.basket=items;S.mode="photo";S.store="your capture";S.valid="";
     const sized=items.filter(function(i){return i.size||i.unitPrice;}).length;
     $("mastSub").innerHTML=(S.where?S.where+"<br>":"Read from your uploads<br>")+
