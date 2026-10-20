@@ -20,10 +20,10 @@ images or addresses.
 ## Known weak spots, in the order the public will probably find them
 
 - [ ] **Multi-buy is inconsistent.** The division is reliable; Haiku reporting
-      that there IS a division is not. It wrote "2/\$4" into size on one run and
+      that there IS a division is not. It wrote "2/$4" into size on one run and
       nothing on the next. When it reports, code divides and the page scored
       15/16 against prices read by hand off a photograph. When it does not, a
-      "2 for \$4" item prices as \$4 and that line reads high. Visible rather
+      "2 for $4" item prices as $4 and that line reads high. Visible rather
       than silent: PHOTO badge, editable price.
 - [ ] **A whole circular in one shot reads badly.** Each tile lands about ten
       pixels tall and prices attach to the wrong products. One page close up
