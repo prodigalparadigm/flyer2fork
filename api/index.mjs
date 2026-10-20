@@ -63,9 +63,11 @@ const PROMPT = [
   "name: the product as printed, brand included, with no price text in it.",
   "price: what ONE of the item costs, as a plain number. Where a struck-through",
   "  price and a lower offer price are both shown, take the LOWER one.",
-  "  MULTI-BUY: an offer reading \"3 for $5\" or \"2/$4\" is a total for several.",
-  "  Divide it out and give the per-item price (5 for 3 items is 1.67), never the",
-  "  total. Put the wording as printed in size, for example \"3 for $5\".",
+  "  MULTI-BUY offers are common and must not be lost. When an offer reads",
+  "  \"3 for $5\", \"2/$4\", \"6 for $5\" or similar, you MUST copy that whole phrase",
+  "  into the size field, exactly as printed, and put the number shown as price.",
+  "  Example: an offer reading \"2 for $4\" becomes price 4 and size \"2 for $4\".",
+  "  Never leave size empty on a multi-buy offer. The division is done after you.",
   "  PERCENTAGE OFFERS: an offer showing only \"30% OFF\" with no money amount has",
   "  no price. Leave the item out rather than giving it a price of 0.",
   "size: the pack size exactly as printed, such as \"1 kg\". Empty string if none is shown.",
@@ -246,10 +248,30 @@ export async function handler(event) {
       max_tokens: CONFIG.maxTokens,
       messages: [{ role: "user", content: [...blocks, { type: "text", text: PROMPT }] }],
       /* Reading prices off an image is perception, not reasoning, and the
-         gateway gives us 30 seconds. A dense circular at the default effort
-         took 48s and was thrown away by the timeout. */
-      output_config: { format: zodOutputFormat(Reading), effort: "low" },
+         gateway gives us 30 seconds: a dense circular at the default effort
+         took 48s and the timeout threw the answer away. Haiku 4.5 rejects
+         `effort` outright, so only send it to models that take it. */
+      output_config: {
+        format: zodOutputFormat(Reading),
+        ...(/haiku/i.test(CONFIG.model) ? {} : { effort: "low" }),
+      },
     });
+
+    /* Division is arithmetic, and arithmetic belongs in code. Both models read
+       "2 for $4" correctly and then disagreed about what to do with it, so the
+       model now reports the offer verbatim and this converts it. */
+    const MULTI = /(\d+)\s*(?:for|\/)\s*\$?\s*([\d.]+)/i;
+    if (res.parsed_output?.items) {
+      for (const it of res.parsed_output.items) {
+        const m = MULTI.exec(String(it.size || "")) || MULTI.exec(String(it.name || ""));
+        if (!m) continue;
+        const n = parseInt(m[1], 10), total = parseFloat(m[2]);
+        if (!(n > 1) || !(total > 0)) continue;
+        const per = total / n;
+        // only rewrite when the model handed back the undivided total
+        if (Math.abs(it.price - total) < 0.01) it.price = Math.round(per * 100) / 100;
+      }
+    }
 
     if (res.stop_reason === "refusal")
       return J(422, { error: "refused", message: "That image could not be read. Try a different one." });

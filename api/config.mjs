@@ -3,7 +3,10 @@ export const CONFIG = {
   // --- model ---
   // Opus 5 is the default. Haiku 4.5 is roughly a fifth the price per token
   // and usually fine for reading prices off a tag; switch only if you want to.
-  model: "claude-opus-5",
+  // claude-haiku-4-5 is roughly a fifth the price of claude-opus-5 per token.
+  // Note: `effort` is rejected by Haiku, so index.mjs only sends it for models
+  // that accept it. Switching model here is enough.
+  model: "claude-haiku-4-5",
   maxTokens: 8000,
 
   // --- what a single request may contain (checked before any spend) ---
