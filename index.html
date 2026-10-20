@@ -1704,7 +1704,8 @@ async function readImages(list){
     $("resetBtn").hidden=false;
     status("<b>"+items.length+" prices</b> from "+S.captures+" capture"+(S.captures===1?"":"s")+
            (merged?", "+merged+" already seen":"")+(added&&appending?", "+added+" new":"")+
-           ". Claude read these, so check anything that looks wrong. Every photo price is editable, "+
+           ". Claude read these, so check anything that looks wrong. One page close up reads far "+
+           "better than a whole circular in one shot. Every photo price is editable, "+
            "and changing one marks it as yours.","warn");
     rebuild();
   }catch(e){
