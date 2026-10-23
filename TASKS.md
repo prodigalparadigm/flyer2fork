@@ -8,30 +8,34 @@ Verified against live infrastructure, 19 Oct 2026.
 - 75 recipes / 73 ingredients, all 192 diet x kit x cuisine combinations fill a week
 - Rate limits and validation verified live
 
-## Tonight: the public is the test
+## State, 22 Oct
 
-The link is out. `infra/morning.sh` prints what happened: how many reads, how
-slow, how many items, how often the known-flaky multi-buy reporting fired, what
-failed and what it cost. Counts and timings only, never prices, product names,
-images or addresses.
+Live and in use. Two addresses:
 
-    ./infra/morning.sh 12h
+- https://flyer2fork.com
+- https://prodigalparadigm.github.io/flyer2fork-mirror (for networks that block
+  newly registered domains; the main domain was registered 19 Oct and ages out
+  of those lists in a few weeks, after which the mirror can go)
+
+**Both repos must be pushed on every change** or the mirror silently goes stale.
+
+Reader runs on Haiku 4.5, about $0.007 a read, 10 to 16 seconds. Cap 300/day.
+`./infra/morning.sh 12h` reports traffic, latency, failures and spend.
 
 ## Known weak spots, in the order the public will probably find them
 
-- [ ] **Multi-buy is inconsistent.** The division is reliable; Haiku reporting
-      that there IS a division is not. It wrote "2/$4" into size on one run and
-      nothing on the next. When it reports, code divides and the page scored
-      15/16 against prices read by hand off a photograph. When it does not, a
-      "2 for $4" item prices as $4 and that line reads high. Visible rather
-      than silent: PHOTO badge, editable price.
-- [ ] **A whole circular in one shot reads badly.** Each tile lands about ten
-      pixels tall and prices attach to the wrong products. One page close up
-      went 68% to 93%. The page says so now; watch whether people read it.
-- [ ] **Untested in the wild:** shelf tags photographed in a shop, Canadian
-      postcodes, six images at once, the currency picker in a non-rupee run.
+- [ ] **Most flyer items still have no pack size**, so their cost assumes one
+      pack covers the week. Per-pound rates are now recovered where the search
+      index has them, which fixed meat and some produce, but that was only 8 of
+      227 items on Dierbergs. The page says so per recipe and under the total.
+- [ ] **Multi-buy depends on the model reporting the offer wording.** The
+      division is reliable; Haiku mentioning there is one is not.
+- [ ] **A whole circular in one shot reads badly.** One page close up went 68%
+      to 93% against prices checked by hand.
+- [ ] **Untested in the wild:** shelf tags in a shop, Canadian postcodes, six
+      images at once, the currency picker in a non-rupee run.
 
-## Yours, blocking## Yours, blocking
+## Yours, blocking## Yours, blocking## Yours, blocking
 
 - [ ] **API key into SSM.** Confirmed absent (`ParameterNotFound`), so Upload
       prices returns `no_key`. This is the only thing standing between Siddhant
