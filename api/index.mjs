@@ -155,7 +155,7 @@ export async function handler(event) {
       }
       const id = String(q.id || "").trim();
       if (!/^\d{1,12}$/.test(id)) return J(400, { error: "bad_id", message: "Bad flyer id." });
-      const items = await flyer(id);
+      const items = await flyer(id, String(q.postal || "").trim());
       note("flyer_ok", { items: items.length });
       if (!items.length)
         return J(422, {

@@ -66,8 +66,35 @@ export async function stores(postal) {
 const JUNK =
   /instagram|follow us|join our team|www\.|\.com\b|prices? effective|we reserve|visit us|see store|hiring|gift card|open \d|store hours|^\W*$/i;
 
-export async function flyer(id) {
-  const d = await jget(`${BASE}/flyers/${encodeURIComponent(id)}?locale=en-us`);
+/* The flyer endpoint drops the unit; the search index keeps it in
+   post_price_text ("lb."). They join exactly on flyer_item_id, so for the
+   categories American circulars price by weight we can recover the real rate
+   instead of guessing that one pack feeds a week. */
+const WEIGHED = ["chicken", "beef", "pork", "turkey", "sausage", "bacon", "fish",
+  "salmon", "shrimp", "steak", "potato", "onion", "tomato", "apple", "pepper",
+  "broccoli", "carrot", "grapes"];
+const PER_LB = /\b(?:per\s*)?lbs?\b\.?/i;
+
+async function unitsFor(flyerId, postal) {
+  const map = new Map();
+  const results = await Promise.allSettled(WEIGHED.map((q) =>
+    jget(`${BASE}/items/search?q=${encodeURIComponent(q)}&postal_code=${encodeURIComponent(postal)}&locale=en-us`, 9000)));
+  for (const r of results) {
+    if (r.status !== "fulfilled") continue;
+    for (const i of r.value.items || []) {
+      if (i.flyer_id !== Number(flyerId)) continue;
+      const unit = String(i.post_price_text || "");
+      if (PER_LB.test(unit)) map.set(i.flyer_item_id, "1 lb");
+    }
+  }
+  return map;
+}
+
+export async function flyer(id, postal) {
+  const [d, units] = await Promise.all([
+    jget(`${BASE}/flyers/${encodeURIComponent(id)}?locale=en-us`),
+    postal ? unitsFor(id, postal).catch(() => new Map()) : Promise.resolve(new Map()),
+  ]);
   const out = [];
   const seen = new Set();
   for (const i of d.items || []) {
@@ -77,7 +104,15 @@ export async function flyer(id) {
     const k = n.toLowerCase();
     if (seen.has(k)) continue;
     seen.add(k);
-    out.push({ name: n, price: p, size: "", unit_price: null, unit_size: null });
+    /* a per-pound rate feeds the existing unit-price path, so the rest of the
+       pipeline costs it correctly with no special casing */
+    const per = units.get(i.id);
+    out.push({
+      name: n, price: p,
+      size: per || "",        // "1 lb" parses; "per lb" does not, so packs can be counted
+      unit_price: per ? p : null,
+      unit_size: per || null,
+    });
   }
   return out;
 }

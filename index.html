@@ -1616,7 +1616,8 @@ async function useFlyerNow(){
   status('<span class="spin"></span> Reading the '+name+' flyer\u2026');
   try{
     const r=await fetch(API_BASE+"/api/flyer?id="+encodeURIComponent(id)+
-      "&currency="+encodeURIComponent(FLYERCUR)+"&place="+encodeURIComponent(name));
+      "&currency="+encodeURIComponent(FLYERCUR)+"&place="+encodeURIComponent(name)+
+      "&postal="+encodeURIComponent(clean($("postal").value)));
     const d=await r.json().catch(function(){return{};});
     if(!r.ok){status(d.message||"That flyer could not be read.",r.status===422?"warn":"err");return;}
     const items=(d.items||[]).map(function(o){
