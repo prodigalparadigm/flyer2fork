@@ -303,6 +303,7 @@ section{margin-bottom:34px}
         <button class="btn" id="findBtn">Find my store (US &amp; Canada)</button>
         <button class="btn ghost" id="photoBtn" hidden>Photo or PDF</button>
         <button class="btn ghost" id="manualBtn">Type prices</button>
+        <button class="btn ghost" id="shuffleBtn">Different week</button>
         <button class="btn ghost" id="resetBtn" hidden>Start over</button>
         <input type="file" id="photoInput" accept="image/*" multiple hidden>
       </div>
@@ -930,20 +931,53 @@ function dietOK(r,d){
   if(d==="nobeef")return !keys.includes("beef");
   return true;
 }
+/* The planner was deterministic, so the same shop gave the same seven dinners
+   for ever: the pool was not too small, it simply never moved. A seed nudges
+   the scores just enough to reorder near-equal candidates, while sale coverage
+   and ingredient reuse still decide anything that actually matters. Diet, kit
+   and cuisine stay hard filters. */
+function hash32(str){
+  let h=2166136261;
+  for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}
+  return (h>>>0)/4294967296;
+}
+const jitter=(id)=>hash32(id+"|"+(S.seed||0));
+/* dishes shown on recent visits step aside for their neighbours */
+function recentlySeen(){
+  try{return JSON.parse(localStorage.getItem("f2f_seen")||"[]");}catch(e){return [];}
+}
+function rememberPlan(plan){
+  try{
+    const prev=recentlySeen();
+    const next=plan.map(r=>r.id).concat(prev).slice(0,14);
+    localStorage.setItem("f2f_seen",JSON.stringify(next));
+  }catch(e){}
+}
 function buildPlan(diet,nights,equip,region){
   const ok=EQOK[equip]||EQOK.all;
-  const pool=RECIPES.filter(r=>dietOK(r,diet)&&ok.indexOf(r.eq)>=0);
+  let pool=RECIPES.filter(r=>dietOK(r,diet)&&ok.indexOf(r.eq)>=0);
+  /* Nudging scores was not enough: on a thin basket the same dishes win by a
+     wide margin, so eight presses gave three weeks. "Different" has to mean
+     excluded, not discouraged. Relax only if the pool would starve. */
+  const bar=S.exclude||[];
+  if(bar.length){
+    const slim=pool.filter(r=>bar.indexOf(r.id)<0);
+    pool = slim.length>=nights ? slim
+         : pool.filter(r=>bar.slice(0,Math.max(0,bar.length-nights)).indexOf(r.id)<0);
+  }
   /* cuisine is a weight, never a gate: a euro basket should stop serving pulao
      without leaving the week unfillable when the pool is thin */
   const fit=r=>!region||region==="any"?0:(r.reg===region?0.55:r.reg==="any"?0.15:-0.25);
-  const picked=[],cart=new Set();
+  const picked=[],cart=new Set(),seen=recentlySeen();
   while(picked.length<nights&&picked.length<pool.length){
     let best=null,bestS=-1;
     for(const r of pool){
       if(picked.indexOf(r)>=0)continue;
       const hits=r.core.filter(c=>S.deals[c[0]]).length;
       const reuse=r.core.filter(c=>cart.has(c[0])).length;
-      let s=hits/r.core.length+reuse/r.core.length*0.42+fit(r);
+      let s=hits/r.core.length+reuse/r.core.length*0.42+fit(r)
+            +jitter(r.id)*0.22            // reorders near-ties, cannot beat real signal
+            -(seen.indexOf(r.id)>=0?0.3:0); // shown recently, let something else have a turn
       const prot=r.core.map(c=>c[0]).find(k=>ING[k]&&ING[k].a==="meat");
       if(prot&&picked.some(p=>p.core.some(c=>c[0]===prot)))s-=0.30;
       if(picked.length&&picked[picked.length-1].c===r.c)s-=0.12;
@@ -1318,6 +1352,7 @@ function rebuild(){
   S.qty={};S.est={};S.done={};S.override={};
   $("cols").hidden=false;
   renderPlan();renderList();renderTotals();
+  rememberPlan(S.plan);
   /* Any source can yield prices that match no ingredient. Say so rather than
      showing a tidy zero. */
   if(S.basket.length&&!Object.keys(S.deals).length)
@@ -1380,6 +1415,7 @@ const SAMPLES={
     strip:"This is a <b>worked example</b>: a real New York circular, 313 advertised prices."}
 };
 function useSample(which){
+  S.exclude=[];
   const s=SAMPLES[which]||SAMPLES.pune;
   S.basket=s.items().slice();S.store=s.store;S.valid=s.valid;S.mode="sample";S.cur=s.cur;
   S.captures=0;S.curKnown=true;S.region=s.region;S.sample=which||"pune";S.where="";
@@ -1630,6 +1666,7 @@ async function useFlyerNow(){
       status("<b>"+name+" \u2014 "+label+"</b> has "+items.length+" prices but no food in it. "+
              "Pick that chain's <b>Weekly Ad</b> instead.","warn");
       return;}
+    S.exclude=[];
     S.basket=items;S.mode="flyer";S.store=name;S.valid="";S.captures=0;
     S.cur=FLYERCUR;S.curKnown=true;S.where=name;S.region="any";
     $("curField").hidden=true;
@@ -1742,6 +1779,11 @@ async function readImages(list){
 /* ---------- boot ---------- */
 (function(){
   const sv=load();
+  try{
+    const prior=parseInt(localStorage.getItem("f2f_seed")||"",10);
+    S.seed=Number.isFinite(prior)?prior+1:0;   // a returning visitor gets a new week
+    localStorage.setItem("f2f_seed",String(S.seed));
+  }catch(e){S.seed=0;}
   ["budget","people","diet","nights","equip","cuisine"].forEach(function(k){
     if(sv[k]!=null&&sv[k]!=="")$(k).value=sv[k];});
   $("manualBtn").addEventListener("click",function(){toManual(
@@ -1785,6 +1827,15 @@ async function readImages(list){
   $("useFlyer").addEventListener("click",useFlyerNow);
   $("flyerCancel").addEventListener("click",function(){
     $("flyerWrap").hidden=true;status("Flyer lookup closed.");});
+  $("shuffleBtn").addEventListener("click",function(){
+    if(!S.basket.length)return;
+    S.seed=(S.seed||0)+1;
+    S.exclude=S.plan.map(r=>r.id).concat(S.exclude||[]).slice(0,28);
+    try{localStorage.setItem("f2f_seed",String(S.seed));}catch(e){}
+    rebuild();
+    status("A different week from the same prices. Press again for another, "+
+           "or <b>Start over</b> for the best-value week.");
+  });
   $("resetBtn").addEventListener("click",function(){
     S.captures=0;S.curKnown=false;S.where="";useSample(S.sample||"pune");});
   $("curSel").addEventListener("change",function(){
