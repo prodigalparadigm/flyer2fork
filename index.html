@@ -837,8 +837,16 @@ function save(){try{localStorage.setItem("f2f",JSON.stringify({
 function load(){try{return JSON.parse(localStorage.getItem("f2f")||"{}")}catch(e){return{}}}
 function status(txt,kind){$("strip").querySelector(".dot").className="dot"+(kind?" "+kind:"");
   $("stripTxt").innerHTML=txt;}
+/* A US circular prices in pounds, so showing a shopper 3.3 kg of chicken is
+   asking them to do arithmetic in the aisle. Follow the currency. */
+const imperial=()=>S.cur==="$"||S.cur==="C$";
 function fmtQty(q,base){
   if(base==="ct")return (Math.round(q*10)/10)+"";
+  if(imperial()&&base==="g"){
+    const oz=q/28.3495;
+    if(Math.round(oz)>=16)return (Math.round(oz/1.6)/10)+" lb";   // 450 g is 1 lb, not 16 oz
+    return Math.max(1,Math.round(oz))+" oz";
+  }
   if(q>=1000)return (Math.round(q/100)/10)+(base==="ml"?" l":" kg");
   return Math.round(q)+" "+base;
 }
@@ -897,12 +905,16 @@ function indexBasket(basket){
   return deals;
 }
 function recipeCost(r){
-  let cost=0,costed=0;
+  let cost=0,costed=0,assumed=0;
   for(const[k,q]of r.core){
-    const u=(S.alloc&&S.alloc[k]!=null)?S.alloc[k]:(S.deals[k]&&S.deals[k][0].unit);
-    if(u!=null){cost+=q*u;costed++;}
+    const known=S.deals[k]&&S.deals[k][0].unit;
+    const u=known!=null?known:(S.alloc?S.alloc[k]:null);
+    if(u==null)continue;
+    cost+=q*u;costed++;
+    /* priced by spreading one pack over the week, not from a real pack size */
+    if(known==null)assumed++;
   }
-  return{cost:cost,costed:costed,of:r.core.length,
+  return{cost:cost,costed:costed,assumed:assumed,of:r.core.length,
          per:costed?cost/BASE:null,full:costed===r.core.length};
 }
 const EQOK={all:["pan","cooker","oven"],cooker:["pan","cooker"],oven:["pan","oven"],pan:["pan"]};
@@ -1031,7 +1043,9 @@ function renderPlan(){
          <h4>From the cupboard</h4><div class="chips">${r.pantry.map(p=>`<span class="chip">${p}</span>`).join("")}</div>
          <h4>Method</h4><ol class="steps">${r.steps.map(s=>`<li>${s}</li>`).join("")}</ol>
          <h4>Costing</h4><div class="caveat" style="border:0;padding:0;margin:0">
-           ${c.costed} of ${c.of} ingredients priced from a pack whose size is known${c.full?"":"; the rest are not in the total"}.</div>
+           ${c.costed} of ${c.of} ingredients costed${c.full?"":"; the rest are not in the total"}.${
+             c.assumed?` <b>${c.assumed}</b> of them had no pack size on the flyer, so the price shown
+             assumes a single pack covers the week. If a pack is smaller than that, the real cost is higher.`:""}</div>
        </div>`;
     const btn=card.querySelector(".day-top"),body=card.querySelector(".day-body");
     btn.addEventListener("click",()=>{const o=body.hidden;body.hidden=!o;
@@ -1248,7 +1262,13 @@ function renderTotals(){
   $("miniBar").hidden=false;
   $("miniBar").innerHTML=`<b style="color:${b>0&&w.tot>b?"var(--sale)":"var(--good)"}">${money(w.tot)}</b>`+
     `<span style="color:var(--ink2)">${b>0?(left>=0?"under budget":"over budget")+" · "+money(Math.abs(left)):"this week’s shop"}</span>`;
+  const assumedRows=S.rows.filter(r=>!r.keep&&r.deal&&r.deal.unit==null).length;
   $("caveat").innerHTML=
+    (assumedRows?`<b>${money(w.tot)}</b> assumes one pack of each covers the week. `+
+      `${assumedRows} item${assumedRows>1?"s":""} on this flyer carry no pack size, and a `+
+      `"$1.77" on a US circular is usually per pound, not per bag. Where that is the case the `+
+      `real bill is higher: set the quantity column to the number of packs you would actually buy.`+
+      `<br><br>`:"")+
     (warehouse&&!bulky
        ? `<b>${S.store}</b> sells in bulk. <b>${money(w.tot)}</b> is one pack of each at the till, `+
          `and a warehouse pack feeds well past seven nights, so treat it as stocking up rather `+
